@@ -114,13 +114,11 @@ def write_tag(kmlf, tag, value=None):
     if has_value:
         kmlf.write(value)
         kmlf.write(__xml_close % tag + "\n")
-    sync_kml_file(kmlf)
 
 
 def close_tag(kmlf, tag):
     tag = tag.split()[0]
     kmlf.write(__xml_close % tag + "\n")
-    sync_kml_file(kmlf)
 
 
 def write_kml_header(kmlf):
@@ -129,7 +127,6 @@ def write_kml_header(kmlf):
     kmlf.write(__xml_header + '\n')
     write_tag(kmlf, __kml)
     write_tag(kmlf, __doc)
-    sync_kml_file(kmlf)
 
 
 def write_kml_footer(kmlf):
@@ -137,7 +134,6 @@ def write_kml_footer(kmlf):
     """
     close_tag(kmlf, __doc)
     close_tag(kmlf, __kml)
-    sync_kml_file(kmlf)
 
 
 def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND):
@@ -156,7 +152,6 @@ def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND):
     write_tag(kmlf, __extrude, value="1")
     close_tag(kmlf, __point)
     close_tag(kmlf, __place)
-    sync_kml_file(kmlf)
 
 
 def write_icon_style(kmlf, icon_id, href):
@@ -184,7 +179,6 @@ def write_style_headers(kmlf):
     close_tag(kmlf, __style)
     write_icon_style(kmlf, "iconPathStart", icon_start)
     write_icon_style(kmlf, "iconPathEnd", icon_end)
-    sync_kml_file(kmlf)
      
 def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND, name=None):
     """Write a track header with a pair of start/end placemarks.
@@ -207,7 +201,6 @@ def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND, name=None):
     write_tag(kmlf, __tessellate, value="0")
     write_tag(kmlf, __altitude, value=altitude)
     write_tag(kmlf, __coord)
-    sync_kml_file(kmlf)
 
 
 def write_track_footer(kmlf):
@@ -217,7 +210,6 @@ def write_track_footer(kmlf):
     close_tag(kmlf, __linestr)
     close_tag(kmlf, __place)
     close_tag(kmlf, __folder)
-    sync_kml_file(kmlf)
 
 
 def write_coords(kmlf, data):
@@ -229,7 +221,6 @@ def write_coords(kmlf, data):
         dmap(data, F_GPS_ALT)
     )
     kmlf.write("%s,%s,%s\n" % coord_data)
-    sync_kml_file(kmlf)
 
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
                 model=_default_model, thresh=1000):
@@ -286,6 +277,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         write_track_footer(kmlf)
 
     write_kml_footer(kmlf)
+    sync_kml_file(kmlf)
 
 
 def main(argv):
