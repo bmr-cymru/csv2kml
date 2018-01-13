@@ -303,13 +303,13 @@ def main(argv):
 
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
-    except OSError:
+    except (IOError, OSError):
         print("Could not open output file: %s" % (args.output or '-'))
         raise
 
     try:
         csvf = sys.stdin if not args.file else open(args.file, "r")
-    except OSError:
+    except (IOError, OSError):
         print("Could not open input file: %s" % (args.file or '-'))
         raise
 
@@ -317,10 +317,9 @@ def main(argv):
                        thresh=args.threshold)
 
 if __name__ == '__main__':
-    main(sys.argv)
-    sys.exit(0)
     try:
         main(sys.argv)
-    except:
+    except Exception as e:
+        print(e)
         sys.exit(1)
     sys.exit(0)
