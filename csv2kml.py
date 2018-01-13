@@ -85,7 +85,7 @@ def sync_kml_file(kmlf):
     """Sync file data for the output KML file.
     """
     if not kmlf.isatty():
-        os.fdatasync(kmlf)
+        os.fsync(kmlf)
 
 
 def write_kml_header(kmlf):
