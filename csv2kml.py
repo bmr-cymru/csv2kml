@@ -48,26 +48,27 @@ class _model(object):
     name = ""
     map = None
 
-    def __init__(self, name, field_map):
+    def __init__(self, name, aliases, field_map):
         self.map = field_map
         self.name = name
+        self.aliases = aliases
 
 __models = [
-    _model("Inspire1",
+    _model("Inspire1", ["i1"],
             {F_TICK: 0,
              F_FLIGHT_TIME: 2,
              F_GPS_TS:47,
              F_GPS_LONG:43,
              F_GPS_LAT:44,
              F_GPS_ALT:48}),
-    _model("Inspire2",
+    _model("Inspire2", ["i2"],
             {F_TICK: 0,
              F_FLIGHT_TIME: 2,
              F_GPS_TS: 56,
              F_GPS_LONG: 52,
              F_GPS_LAT: 53,
              F_GPS_ALT: 57}),
-    _model("Phantom4",
+    _model("Phantom4", ["p4"],
             {F_TICK: 0,
              F_FLIGHT_TIME: 2,
              F_GPS_TS: 56,
@@ -79,6 +80,15 @@ __models = [
 _default_model = __models[0].name
 
 _model_names = {m.name: m for m in __models}
+
+
+def __init_aliases():
+    global _model_names
+    for m in __models:
+        if m.aliases:
+            for a in m.aliases:
+                _model_names[a] = m
+
 
 #: Map of field constants to data tuple elements
 __data_map = {
@@ -299,6 +309,8 @@ def main(argv):
                         help="Time difference threshold for sampling (ms)")
 
     args = parser.parse_args()
+
+    __init_aliases()
 
     mode = MODE_PLACE if args.placemarks else MODE_TRACK
     alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
