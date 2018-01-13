@@ -38,6 +38,7 @@ __alt_absolute = 'absolute'
 
 #: Field constants for raw CSV columns
 F_TICK = "F_TICK"
+F_FLIGHT_TIME = "F_FLIGHT_TIME",
 F_GPS_TS = "F_GPS_TS"
 F_GPS_LONG = "F_GPS_LONG"
 F_GPS_LAT = "F_GPS_LAT"
@@ -54,12 +55,14 @@ class _model(object):
 __models = [
     _model("Inspire1",
             {F_TICK: 0,
+             F_FLIGHT_TIME: 2,
              F_GPS_TS:47,
              F_GPS_LONG:43,
              F_GPS_LAT:44,
              F_GPS_ALT:48}),
     _model("Phantom4",
             {F_TICK: 0,
+             F_FLIGHT_TIME: 2,
              F_GPS_TS: 56,
              F_GPS_LONG: 52,
              F_GPS_LAT: 53,
