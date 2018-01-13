@@ -105,7 +105,7 @@ def write_kml_footer(kmlf):
     sync_kml_file(kmlf)
 
 
-def write_placemark(kmlf, data, style):
+def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND):
     """Write a placemark with optional style.
     """
     coords = "%s,%s,%s" % (dmap(data, F_GPS_LONG), dmap(data, F_GPS_LAT),
@@ -117,7 +117,10 @@ def write_placemark(kmlf, data, style):
         kmlf.write(__styleurl_node + style + __styleurl_close)
     kmlf.write(__point_node)
     kmlf.write(__coord_node + coords + __coord_close + '\n')
-    kmlf.write(__alt_rel_ground_node + '\n')
+    if altitude == ALT_REL_GROUND:
+        kmlf.write(__alt_rel_ground_node + '\n')
+    else:
+        kmlf.write(__alt_abs_node + '\n')
     kmlf.write(__ext_1_node + '\n')
     kmlf.write( __point_close + '\n')
     kmlf.write(__place_close + '\n')
@@ -157,9 +160,9 @@ def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND):
     # Start/end folder
     kmlf.write(__folder_node)
     # Write start placemark
-    write_placemark(kmlf, csv_data[0], " #iconPathStart")
+    write_placemark(kmlf, csv_data[0], " #iconPathStart", altitude=altitude)
     # Write end placemark
-    write_placemark(kmlf, csv_data[-1], " #iconPathEnd")
+    write_placemark(kmlf, csv_data[-1], " #iconPathEnd", altitude=altitude)
     kmlf.write(__folder_close)
     # Track folder
     kmlf.write(__folder_node + '\n')
@@ -228,7 +231,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND):
     
     for data in csv_data:
         if not track:
-            write_placemark(kmlf, data, None)
+            write_placemark(kmlf, data, None, altitude=altitude)
         else:
             write_coords(kmlf, data)
 
