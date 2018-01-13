@@ -136,13 +136,14 @@ def write_kml_footer(kmlf):
     close_tag(kmlf, __kml)
 
 
-def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND):
+def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND, name=None):
     """Write a placemark with optional style.
     """
     coords = "%s,%s,%s" % (dmap(data, F_GPS_LONG), dmap(data, F_GPS_LAT),
                            dmap(data, F_GPS_ALT))
+    name = name if name else dmap(data, F_TICK)
     write_tag(kmlf, __place)
-    write_tag(kmlf, __name, value=dmap(data, F_TICK))
+    write_tag(kmlf, __name, value=name)
     write_tag(kmlf, __desc, value=dmap(data, F_TICK))
     if style:
         write_tag(kmlf, __styleurl, value=style)
@@ -186,9 +187,11 @@ def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND, name=None):
     # Start/end folder
     write_tag(kmlf, __folder)
     # Write start placemark
-    write_placemark(kmlf, csv_data[0], " #iconPathStart", altitude=altitude)
+    write_placemark(kmlf, csv_data[0], " #iconPathStart", altitude=altitude,
+                    name="Start")
     # Write end placemark
-    write_placemark(kmlf, csv_data[-1], " #iconPathEnd", altitude=altitude)
+    write_placemark(kmlf, csv_data[-1], " #iconPathEnd", altitude=altitude,
+                    name="End")
     close_tag(kmlf, __folder)
     # Track folder
     write_tag(kmlf, __folder)
