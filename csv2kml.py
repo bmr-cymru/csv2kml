@@ -8,50 +8,33 @@ from os.path import basename
 # XML document header
 __xml_header = '<?xml version="1.0" encoding="UTF-8"?>'
 
+__xml_open = '<%s>'
+__xml_close = '</%s>'
 
-# KML node tags
-__kml_node = '<kml xmlns="http://earth.google.com/kml/2.0">'
-__doc_node = '<Document>'
-__place_node = '<Placemark>'
-__name_node = '<name>'
-__desc_node = '<description>'
-__point_node = '<Point>'
-__coord_node = '<coordinates>'
-__folder_node = '<Folder>'
-__style_node = '<Style id="%s">'
-__styleurl_node = '<styleUrl>'
-__linestyle_node = '<LineStyle>'
-__linestr_node = '<LineString>'
-__iconstyle_node = '<IconStyle>'
-__icon_node = '<Icon>'
-
-__kml_close = '</kml>'
-__doc_close = '</Document>'
-__place_close = '</Placemark>'
-__name_close = '</name>'
-__desc_close = '</description>'
-__point_close = '</Point>'
-__coord_close = '</coordinates>'
-__folder_close = '</Folder>'
-__style_close = '</Style>'
-__styleurl_close = '</styleUrl>'
-__linestyle_close = '</LineStyle>'
-__linestr_close = '</LineString>'
-__iconstyle_close = '</IconStyle>'
-__icon_close = '</Icon>'
+__kml = 'kml xmlns="http://earth.google.com/kml/2.0"'
+__doc = 'Document'
+__place = 'Placemark'
+__name = 'name'
+__desc = 'description'
+__point = 'Point'
+__coord = 'coordinates'
+__folder = 'Folder'
+__style = 'Style id="%s"'
+__styleurl = 'styleUrl'
+__linestyle = 'LineStyle'
+__linestr = 'LineString'
+__iconstyle = 'IconStyle'
+__icon = 'Icon'
+__altitude = 'altitudeMode'
+__extrude = 'extrude'
+__href = 'href'
+__color = 'color'
+__width = 'width'
+__tessellate = 'tessellate'
 
 # Altitude mode
-__alt_node = '<altitudeMode>%s</altitudeMode>'
-__alt_rel_ground_node = __alt_node % 'relativeToGround'
-__alt_abs_node = __alt_node % 'absolute'
-
-# Extrude mode
-__ext_node = '<extrude>%s</extrude>'
-__ext_0_node = __ext_node % '0'
-__ext_1_node = __ext_node % '1'
-
-# Tessellate mode
-__tes_0_node = '<tessellate>0</tessellate>'
+__alt_rel_ground = 'relativeToGround'
+__alt_absolute = 'absolute'
 
 #: Field constants for raw CSV columns
 F_TICK = "F_TICK"
@@ -99,8 +82,8 @@ __data_map = {
 MODE_TRACK="track"
 MODE_PLACE="placemark"
 
-ALT_ABSOLUTE="absolute"
-ALT_REL_GROUND="rel_ground"
+ALT_ABSOLUTE=__alt_absolute
+ALT_REL_GROUND=__alt_rel_ground
 
 def dmap(data, field):
     """Map input field positions to output data.
@@ -115,20 +98,35 @@ def sync_kml_file(kmlf):
         os.fsync(kmlf)
 
 
+def write_tag(kmlf, tag, value=None):
+    has_value = value is not None
+    kmlf.write("%s%s" % (__xml_open % tag, "" if has_value else "\n"))
+    if has_value:
+        kmlf.write(value)
+        kmlf.write(__xml_close % tag + "\n")
+    sync_kml_file(kmlf)
+
+
+def close_tag(kmlf, tag):
+    tag = tag.split()[0]
+    kmlf.write(__xml_close % tag + "\n")
+    sync_kml_file(kmlf)
+
+
 def write_kml_header(kmlf):
     """Write generic KML header tags.
     """
     kmlf.write(__xml_header + '\n')
-    kmlf.write(__kml_node + '\n')
-    kmlf.write(__doc_node + '\n')
+    write_tag(kmlf, __kml)
+    write_tag(kmlf, __doc)
     sync_kml_file(kmlf)
 
 
 def write_kml_footer(kmlf):
     """Write generic KML footer tags.
     """
-    kmlf.write(__doc_close + '\n')
-    kmlf.write(__kml_close + '\n')
+    close_tag(kmlf, __doc)
+    close_tag(kmlf, __kml)
     sync_kml_file(kmlf)
 
 
@@ -137,33 +135,30 @@ def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND):
     """
     coords = "%s,%s,%s" % (dmap(data, F_GPS_LONG), dmap(data, F_GPS_LAT),
                            dmap(data, F_GPS_ALT))
-    kmlf.write(__place_node + '\n')
-    kmlf.write(__name_node + dmap(data, F_TICK) + __name_close + '\n')
-    kmlf.write(__desc_node + dmap(data, F_TICK) + __desc_close + '\n')
+    write_tag(kmlf, __place)
+    write_tag(kmlf, __name, value=dmap(data, F_TICK))
+    write_tag(kmlf, __desc, value=dmap(data, F_TICK))
     if style:
-        kmlf.write(__styleurl_node + style + __styleurl_close)
-    kmlf.write(__point_node)
-    kmlf.write(__coord_node + coords + __coord_close + '\n')
-    if altitude == ALT_REL_GROUND:
-        kmlf.write(__alt_rel_ground_node + '\n')
-    else:
-        kmlf.write(__alt_abs_node + '\n')
-    kmlf.write(__ext_1_node + '\n')
-    kmlf.write( __point_close + '\n')
-    kmlf.write(__place_close + '\n')
+        write_tag(kmlf, __styleurl, value=style)
+    write_tag(kmlf, __point)
+    write_tag(kmlf, __coord, value=coords)
+    write_tag(kmlf, __altitude, value=altitude)
+    write_tag(kmlf, __extrude, value="1")
+    close_tag(kmlf, __point)
+    close_tag(kmlf, __place)
     sync_kml_file(kmlf)
 
 
 def write_icon_style(kmlf, icon_id, href):
     """Write an icon style with an image link.
     """
-    kmlf.write(__style_node % icon_id + '\n')
-    kmlf.write(__iconstyle_node + '\n')
-    kmlf.write(__icon_node + '\n')
-    kmlf.write("<href>%s</href>" % href + '\n')
-    kmlf.write(__icon_close + '\n')
-    kmlf.write(__iconstyle_close + '\n')
-    kmlf.write(__style_close + '\n')
+    write_tag(kmlf, __style % icon_id)
+    write_tag(kmlf, __iconstyle)
+    write_tag(kmlf, __icon)
+    write_tag(kmlf, __href, value=href)
+    close_tag(kmlf, __icon)
+    close_tag(kmlf, __iconstyle)
+    close_tag(kmlf, __style)
 
 
 def write_style_headers(kmlf):
@@ -171,50 +166,47 @@ def write_style_headers(kmlf):
     """
     icon_start = "http://www.earthpoint.us/Dots/GoogleEarth/pal2/icon13.png"
     icon_end = "http://www.earthpoint.us/Dots/GoogleEarth/shapes/target.png"
-    kmlf.write(__style_node % "lineStyle1" + '\n')
-    kmlf.write(__linestyle_node + '\n')
-    kmlf.write('<color>ff00ffff</color>\n')
-    kmlf.write('<width>4</width>\n')
-    kmlf.write(__linestyle_close + '\n')
-    kmlf.write(__style_close + '\n')
+    write_tag(kmlf, __style % "lineStyle1")
+    write_tag(kmlf, __linestyle)
+    write_tag(kmlf, __color, value="ff00ffff")
+    write_tag(kmlf, __width, value="4")
+    close_tag(kmlf, __linestyle)
+    close_tag(kmlf, __style)
     write_icon_style(kmlf, "iconPathStart", icon_start)
     write_icon_style(kmlf, "iconPathEnd", icon_end)
     sync_kml_file(kmlf)
      
-def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND):
+def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND, name=None):
     """Write a track header with a pair of start/end placemarks.
     """
     # Start/end folder
-    kmlf.write(__folder_node)
+    write_tag(kmlf, __folder)
     # Write start placemark
     write_placemark(kmlf, csv_data[0], " #iconPathStart", altitude=altitude)
     # Write end placemark
     write_placemark(kmlf, csv_data[-1], " #iconPathEnd", altitude=altitude)
-    kmlf.write(__folder_close)
+    close_tag(kmlf, __folder)
     # Track folder
-    kmlf.write(__folder_node + '\n')
-    kmlf.write(__place_node + '\n')
-    kmlf.write(__name_node + 'Flight Trace' + __name_close + '\n')
-    kmlf.write(__desc_node + __desc_close)
-    kmlf.write(__styleurl_node + '#lineStyle1' + __styleurl_close + '\n')
-    kmlf.write(__linestr_node + '\n')
-    kmlf.write(__ext_0_node + '\n')   
-    kmlf.write(__tes_0_node + '\n')
-    if altitude == ALT_REL_GROUND:
-        kmlf.write(__alt_rel_ground_node + '\n')
-    else:
-        kmlf.write(__alt_abs_node + '\n')
-    kmlf.write(__coord_node + '\n')
+    write_tag(kmlf, __folder)
+    write_tag(kmlf, __place)
+    write_tag(kmlf, __name, value=name if name else 'Flight Trace')
+    write_tag(kmlf, __desc, value='')
+    write_tag(kmlf, __styleurl, value='#lineStyle1')
+    write_tag(kmlf, __linestr)
+    write_tag(kmlf, __extrude, value="0")
+    write_tag(kmlf, __tessellate, value="0")
+    write_tag(kmlf, __altitude, value=altitude)
+    write_tag(kmlf, __coord)
     sync_kml_file(kmlf)
 
 
 def write_track_footer(kmlf):
     """Write a generic track footer closing all tags.
     """
-    kmlf.write(__coord_close + '\n')
-    kmlf.write(__linestr_close + '\n')
-    kmlf.write(__place_close + '\n')
-    kmlf.write(__folder_close + '\n')
+    close_tag(kmlf, __coord)
+    close_tag(kmlf, __linestr)
+    close_tag(kmlf, __place)
+    close_tag(kmlf, __folder)
     sync_kml_file(kmlf)
 
 
@@ -281,7 +273,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 def main(argv):
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
     parser.add_argument("-a", "--absolute", action="store_true",
-                        help="Use absolute altitude mode")
+                        help="Use absolute altitude mode", default=None)
     parser.add_argument("-f", "--file", metavar="INPUT", type=str,
                         help="Input file path", default=None)
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
@@ -293,10 +285,10 @@ def main(argv):
 
     args = parser.parse_args()
 
+    print(args.absolute)
     mode = MODE_PLACE if args.placemarks else MODE_TRACK
     alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
     model = args.model if args.model else _default_model
-
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
     except OSError:
