@@ -287,16 +287,8 @@ def main(argv):
 
     args = parser.parse_args()
 
-    if args.placemarks:
-        mode = MODE_PLACE
-    else:
-        mode = MODE_TRACK
-
-    if args.absolute:
-        alt = ALT_ABSOLUTE
-    else:
-        alt = ALT_REL_GROUND
-
+    mode = MODE_PLACE if args.placemarks else MODE_TRACK
+    alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
     model = args.model if args.model else _default_model
 
     try:
