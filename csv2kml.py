@@ -54,11 +54,32 @@ __ext_1_node = __ext_node % '1'
 __tes_0_node = '<tessellate>0</tessellate>'
 
 #: Field constants for raw CSV columns
-F_TICK = 0
-F_GPS_TS = 47
-F_GPS_LONG = 43
-F_GPS_LAT = 44
-F_GPS_ALT = 48
+F_TICK = "F_TICK"
+F_GPS_TS = "F_GPS_TS"
+F_GPS_LONG = "F_GPS_LONG"
+F_GPS_LAT = "F_GPS_LAT"
+F_GPS_ALT = "F_GPS_ALT"
+
+class _model(object):
+    name = ""
+    map = None
+
+    def __init__(self, name, field_map):
+        self.map = field_map
+        self.name = name
+
+__models = [
+    _model("Inspire1",
+            {F_TICK: 0,
+             F_GPS_TS:47,
+             F_GPS_LONG:43,
+             F_GPS_LAT:44,
+             F_GPS_ALT:48})
+]
+
+_default_model = __models[0].name
+
+_model_names = {m.name: m for m in __models}
 
 #: Map of field constants to data tuple elements
 __data_map = {
@@ -202,23 +223,33 @@ def write_coords(kmlf, data):
     kmlf.write("%s,%s,%s\n" % coord_data)
     sync_kml_file(kmlf)
 
-def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND):
+def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
+                model=_default_model):
     """Process one CSV file and write the results to `kmlf`.
     """
     fields = None
     first = True
     csv_data = []
     track = mode == MODE_TRACK
+
     write_kml_header(kmlf)
     write_style_headers(kmlf)
+
+    # Get model field mapping
+    modmap = _model_names[model].map
+
     # Acquire data points
     for line in csvf:
         if line.startswith("Tick"):
             continue
         f = line.strip().split(',')
+
+        def getfield(field):
+            return f[modmap[field]]
+
         data = (
-            f[F_TICK], f[F_GPS_TS],
-            f[F_GPS_LONG], f[F_GPS_LAT], f[F_GPS_ALT]
+            getfield(F_TICK), getfield(F_GPS_TS),
+            getfield(F_GPS_LONG), getfield(F_GPS_LAT), getfield(F_GPS_ALT)
         )
         if not data[2] or not data[3] or not data[4]:
             continue
@@ -243,14 +274,16 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND):
 
 def main(argv):
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
+    parser.add_argument("-a", "--absolute", action="store_true",
+                        help="Use absolute altitude mode")
     parser.add_argument("-f", "--file", metavar="INPUT", type=str,
                         help="Input file path", default=None)
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
                         help="Output file path", default=None)
     parser.add_argument("-p", "--placemarks", action="store_true",
                         help="Output placemarks instead of track")
-    parser.add_argument("-a", "--absolute", action="store_true",
-                        help="Use absolute altitude mode")
+    parser.add_argument("-m", "--model", metavar="DRONE", type=str,
+                        help="Model of drone CSV data")
 
     args = parser.parse_args()
 
@@ -264,6 +297,8 @@ def main(argv):
     else:
         alt = ALT_REL_GROUND
 
+    model = args.model if args.model else _default_model
+
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
     except OSError:
@@ -276,7 +311,7 @@ def main(argv):
         print("Could not open input file: %s" % (args.file or '-'))
         raise
 
-    return process_csv(csvf, kmlf, mode=mode, altitude=alt)
+    return process_csv(csvf, kmlf, mode=mode, altitude=alt, model=model)
 
 if __name__ == '__main__':
     main(sys.argv)
