@@ -44,6 +44,8 @@ F_GPS_LONG = "F_GPS_LONG"
 F_GPS_LAT = "F_GPS_LAT"
 F_GPS_ALT = "F_GPS_ALT"
 
+__fields = [F_TICK, F_FLIGHT_TIME, F_GPS_TS, F_GPS_LAT, F_GPS_LONG, F_GPS_ALT]
+
 class _model(object):
     name = ""
     map = None
@@ -105,12 +107,6 @@ MODE_PLACE="placemark"
 ALT_ABSOLUTE=__alt_absolute
 ALT_REL_GROUND=__alt_rel_ground
 
-def dmap(data, field):
-    """Map input field positions to output data.
-    """
-    return data[__data_map[field]]
-
-
 def sync_kml_file(kmlf):
     """Sync file data for the output KML file.
     """
@@ -149,12 +145,11 @@ def write_kml_footer(kmlf):
 def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND, name=None):
     """Write a placemark with optional style.
     """
-    coords = "%s,%s,%s" % (dmap(data, F_GPS_LONG), dmap(data, F_GPS_LAT),
-                           dmap(data, F_GPS_ALT))
-    name = name if name else dmap(data, F_TICK)
+    coords = "%s,%s,%s" % (data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT])
+    name = name if name else data[F_TICK]
     write_tag(kmlf, __place)
     write_tag(kmlf, __name, value=name)
-    write_tag(kmlf, __desc, value=dmap(data, F_TICK))
+    write_tag(kmlf, __desc, value=data[F_TICK])
     if style:
         write_tag(kmlf, __styleurl, value=style)
     write_tag(kmlf, __point)
@@ -229,9 +224,9 @@ def write_coords(kmlf, data):
     """Write one line of coordinate data in a LinsString object.
     """
     coord_data = (
-        dmap(data, F_GPS_LONG),
-        dmap(data, F_GPS_LAT),
-        dmap(data, F_GPS_ALT)
+        data[F_GPS_LONG],
+        data[F_GPS_LAT],
+        data[F_GPS_ALT]
     )
     kmlf.write("%s,%s,%s\n" % coord_data)
 
@@ -267,13 +262,11 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
         last_ts = ts
 
-        data = (
-            getfield(F_TICK), getfield(F_GPS_TS),
-            getfield(F_GPS_LONG), getfield(F_GPS_LAT), getfield(F_GPS_ALT)
-        )
-        if not data[2] or not data[3] or not data[4]:
+        data = {f: getfield(f) for f in __fields}
+        if not data[F_GPS_LONG] or not data[F_GPS_LAT] or not data[F_GPS_ALT]:
             continue
-        if all([d == "0.0" for d in data[2:4]]):
+        coords = [data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT]]
+        if all([d == "0.0" for d in coords]):
             continue
         csv_data.append(data)
 
