@@ -74,7 +74,13 @@ __models = [
              F_GPS_TS:47,
              F_GPS_LONG:43,
              F_GPS_LAT:44,
-             F_GPS_ALT:48})
+             F_GPS_ALT:48}),
+    _model("Phantom4",
+            {F_TICK: 0,
+             F_GPS_TS: 56,
+             F_GPS_LONG: 52,
+             F_GPS_LAT: 53,
+             F_GPS_ALT: 57})
 ]
 
 _default_model = __models[0].name
