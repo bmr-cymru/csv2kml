@@ -293,6 +293,16 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     sync_kml_file(kmlf)
 
 
+def list_models():
+    print("Supported device models:")
+    for m in __models:
+        sys.stdout.write("Name: %s [" % m.name)
+        left = len(m.aliases) - 1
+        for a in m.aliases:
+            sys.stdout.write("%s%s" % (a, " " if left else ""))
+            left -= 1
+        sys.stdout.write("]\n")
+
 def main(argv):
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
     parser.add_argument("-a", "--absolute", action="store_true",
@@ -301,6 +311,8 @@ def main(argv):
                         help="Input file path", default=None)
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
                         help="Output file path", default=None)
+    parser.add_argument("-l", "--list-models", action="store_true",
+                        help="List the supported drone models")
     parser.add_argument("-m", "--model", metavar="DRONE", type=str,
                         help="Model of drone CSV data")
     parser.add_argument("-p", "--placemarks", action="store_true",
@@ -311,6 +323,9 @@ def main(argv):
     args = parser.parse_args()
 
     __init_aliases()
+
+    if args.list_models:
+        return list_models()
 
     mode = MODE_PLACE if args.placemarks else MODE_TRACK
     alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
