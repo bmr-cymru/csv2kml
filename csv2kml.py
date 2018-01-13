@@ -232,7 +232,7 @@ def write_coords(kmlf, data):
     sync_kml_file(kmlf)
 
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
-                model=_default_model):
+                model=_default_model, thresh=1000):
     """Process one CSV file and write the results to `kmlf`.
     """
     fields = None
@@ -246,6 +246,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     # Get model field mapping
     modmap = _model_names[model].map
 
+    last_ts = 0
     # Acquire data points
     for line in csvf:
         if line.startswith("Tick"):
@@ -254,6 +255,13 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
         def getfield(field):
             return f[modmap[field]]
+
+        ts = int(getfield(F_FLIGHT_TIME)) if getfield(F_FLIGHT_TIME) else None
+
+        if not ts or (ts - last_ts) < thresh:
+            continue
+
+        last_ts = ts
 
         data = (
             getfield(F_TICK), getfield(F_GPS_TS),
@@ -288,17 +296,19 @@ def main(argv):
                         help="Input file path", default=None)
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
                         help="Output file path", default=None)
-    parser.add_argument("-p", "--placemarks", action="store_true",
-                        help="Output placemarks instead of track")
     parser.add_argument("-m", "--model", metavar="DRONE", type=str,
                         help="Model of drone CSV data")
+    parser.add_argument("-p", "--placemarks", action="store_true",
+                        help="Output placemarks instead of track")
+    parser.add_argument("-t", "--threshold", type=int, default=1000,
+                        help="Time difference threshold for sampling (ms)")
 
     args = parser.parse_args()
 
-    print(args.absolute)
     mode = MODE_PLACE if args.placemarks else MODE_TRACK
     alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
     model = args.model if args.model else _default_model
+
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
     except OSError:
@@ -311,7 +321,8 @@ def main(argv):
         print("Could not open input file: %s" % (args.file or '-'))
         raise
 
-    return process_csv(csvf, kmlf, mode=mode, altitude=alt, model=model)
+    return process_csv(csvf, kmlf, mode=mode, altitude=alt, model=model,
+                       thresh=args.threshold)
 
 if __name__ == '__main__':
     main(sys.argv)
