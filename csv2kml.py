@@ -316,6 +316,8 @@ def main(argv):
                         help="Use absolute altitude mode", default=None)
     parser.add_argument("-f", "--file", metavar="INPUT", type=str,
                         help="Input file path", default=None)
+    parser.add_argument("-i", "--input", metavar="INPUT", type=str,
+                        help="Input file path", default=None)
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
                         help="Output file path", default=None)
     parser.add_argument("-l", "--list-models", action="store_true",
