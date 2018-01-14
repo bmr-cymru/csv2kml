@@ -370,8 +370,8 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
             ts_none_skip += 1
             continue
         elif (ts - last_ts) < thresh:
-            continue
             ts_delta_skip += 1
+            continue
 
         last_ts = ts
 
