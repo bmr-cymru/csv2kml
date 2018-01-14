@@ -229,6 +229,21 @@ def write_style_headers(kmlf):
     _log_debug("wrote style headers")
 
 
+def write_state_placemarks(kmlf, csv_data, altitude=ALT_REL_GROUND):
+    fly_state = None
+    write_tag(kmlf, __folder)
+    for data in csv_data:
+        new_fly_state = data[F_FLY_STATE]
+        if fly_state:
+            if new_fly_state != fly_state:
+                _log_info("fly state changed from '%s' to '%s'" %
+                    (fly_state, new_fly_state))
+                name = "%s:%s" % (fly_state, new_fly_state)
+                write_placemark(kmlf, data, None, altitude=altitude, name=name)
+        fly_state = new_fly_state
+    close_tag(kmlf, __folder)
+
+
 def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND, name=None):
     """Write a track header with a pair of start/end placemarks.
     """
@@ -291,7 +306,7 @@ def make_field_map(header, name_map):
 
 
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
-                thresh=1000, field_map=None):
+                thresh=1000, state_marks=False, field_map=None):
     """Process one CSV file and write the results to `kmlf`.
     """
     fields = None
@@ -369,6 +384,10 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         raise Exception("No non-skipped data rows found")
 
     _log_info("writing KML data")
+
+    # Write fly state change placemarks
+    if state_marks:
+        write_state_placemarks(kmlf, csv_data, altitude=altitude)
 
     if track:
         write_track_header(kmlf, csv_data, altitude=altitude)
@@ -487,6 +506,8 @@ def main(argv):
                         help="Output file path", default=None)
     parser.add_argument("-p", "--placemarks", action="store_true",
                         help="Output placemarks instead of track")
+    parser.add_argument("-s", "--state-marks", action="store_true",
+                        help="Output placemarkers when fly state changes")
     parser.add_argument("-t", "--threshold", type=int, default=1000,
                         help="Time difference threshold for sampling (ms)")
     parser.add_argument("-v", "--verbose", action="count",
@@ -526,13 +547,16 @@ def main(argv):
         raise
 
     return process_csv(csvf, kmlf, mode=mode, altitude=alt,
-                       thresh=args.threshold, field_map=field_map)
+                       thresh=args.threshold, state_marks=args.state_marks,
+                       field_map=field_map)
 
     shutdown_logging()
 
 if __name__ == '__main__':
+    main(sys.argv)
     try:
-        main(sys.argv)
+        pass
+        #main(sys.argv)
     except Exception as e:
         print(e)
         sys.exit(1)

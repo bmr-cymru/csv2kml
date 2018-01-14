@@ -18,6 +18,7 @@ Options:
   * `-n` Do not indent KML output
   * `-o` Output file path
   * `-p` Output placemarks instead of track
+  * `-s` Output placemarkers when fly state changes
   * `-t` Time difference threshold for sampling (ms)
   * `-v` Enable verbose output
 
