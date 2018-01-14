@@ -26,6 +26,7 @@ _log = logging.getLogger(__name__)
 
 _default_log_level = logging.WARNING
 _console_handler = None
+_file_handler = None
 
 _log_debug = _log.debug
 _log_info = _log.info
@@ -385,7 +386,7 @@ def read_field_map_file(field_file):
 
 
 def setup_logging(args):
-    global _console_handler
+    global _console_handler, _file_handler
     level = _default_log_level
 
     if args.verbose:
@@ -396,10 +397,23 @@ def setup_logging(args):
 
     formatter = logging.Formatter('%(levelname)s - %(message)s')
     _log.setLevel(level)
-    _console_handler = logging.StreamHandler()
+    _console_handler = logging.StreamHandler(sys.stderr)
     _console_handler.setLevel(level)
     _console_handler.setFormatter(formatter)
     _log.addHandler(_console_handler)
+
+    if args.log_file:
+        log_file = open(args.log_file, "w")
+        _file_handler = logging.StreamHandler(log_file)
+        _file_handler.setLevel(level)
+        _log.addHandler(_file_handler)
+
+
+def shutdown_logging():
+    if _console_handler:
+        _console_handler.close()
+    if _file_handler:
+        _file_handler.close()
 
 
 def main(argv):
@@ -412,6 +426,8 @@ def main(argv):
                         help="Specify a manual field map file")
     parser.add_argument("-i", "--input", metavar="INPUT", type=str,
                         help="Input file path", default=None)
+    parser.add_argument("-l", "--log-file", metavar="LOG", default=None,
+                        help="File to write log to instead of terminal")
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
                         help="Output file path", default=None)
     parser.add_argument("-p", "--placemarks", action="store_true",
@@ -454,6 +470,8 @@ def main(argv):
 
     return process_csv(csvf, kmlf, mode=mode, altitude=alt,
                        thresh=args.threshold, field_map=field_map)
+
+    shutdown_logging()
 
 if __name__ == '__main__':
     try:
