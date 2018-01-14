@@ -46,6 +46,7 @@ F_GPS_ALT = "F_GPS_ALT"
 
 __fields = [F_TICK, F_FLIGHT_TIME, F_GPS_TS, F_GPS_LAT, F_GPS_LONG, F_GPS_ALT]
 
+
 class _model(object):
     name = ""
     map = None
@@ -57,26 +58,26 @@ class _model(object):
 
 __models = [
     _model("Inspire1", ["i1"],
-            {F_TICK: 0,
-             F_FLIGHT_TIME: 2,
-             F_GPS_TS:47,
-             F_GPS_LONG:43,
-             F_GPS_LAT:44,
-             F_GPS_ALT:48}),
+           {F_TICK: 0,
+            F_FLIGHT_TIME: 2,
+            F_GPS_TS: 47,
+            F_GPS_LONG: 43,
+            F_GPS_LAT: 44,
+            F_GPS_ALT: 48}),
     _model("Inspire2", ["i2"],
-            {F_TICK: 0,
-             F_FLIGHT_TIME: 2,
-             F_GPS_TS: 56,
-             F_GPS_LONG: 52,
-             F_GPS_LAT: 53,
-             F_GPS_ALT: 57}),
+           {F_TICK: 0,
+            F_FLIGHT_TIME: 2,
+            F_GPS_TS: 56,
+            F_GPS_LONG: 52,
+            F_GPS_LAT: 53,
+            F_GPS_ALT: 57}),
     _model("Phantom4", ["p4"],
-            {F_TICK: 0,
-             F_FLIGHT_TIME: 2,
-             F_GPS_TS: 56,
-             F_GPS_LONG: 52,
-             F_GPS_LAT: 53,
-             F_GPS_ALT: 57})
+           {F_TICK: 0,
+            F_FLIGHT_TIME: 2,
+            F_GPS_TS: 56,
+            F_GPS_LONG: 52,
+            F_GPS_LAT: 53,
+            F_GPS_ALT: 57})
 ]
 
 _default_model = __models[0].name
@@ -101,11 +102,12 @@ __data_map = {
     F_GPS_ALT: 4
 }
 
-MODE_TRACK="track"
-MODE_PLACE="placemark"
+MODE_TRACK = "track"
+MODE_PLACE = "placemark"
 
-ALT_ABSOLUTE=__alt_absolute
-ALT_REL_GROUND=__alt_rel_ground
+ALT_ABSOLUTE = __alt_absolute
+ALT_REL_GROUND = __alt_rel_ground
+
 
 def sync_kml_file(kmlf):
     """Sync file data for the output KML file.
@@ -185,7 +187,8 @@ def write_style_headers(kmlf):
     close_tag(kmlf, __style)
     write_icon_style(kmlf, "iconPathStart", icon_start)
     write_icon_style(kmlf, "iconPathEnd", icon_end)
-     
+
+
 def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND, name=None):
     """Write a track header with a pair of start/end placemarks.
     """
@@ -230,6 +233,7 @@ def write_coords(kmlf, data):
     )
     kmlf.write("%s,%s,%s\n" % coord_data)
 
+
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
                 model=_default_model, thresh=1000):
     """Process one CSV file and write the results to `kmlf`.
@@ -272,14 +276,14 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
     if track:
         write_track_header(kmlf, csv_data, altitude=altitude)
-    
+
     for data in csv_data:
         if not track:
             write_placemark(kmlf, data, None, altitude=altitude)
         else:
             write_coords(kmlf, data)
 
-    if track:     
+    if track:
         write_track_footer(kmlf)
 
     write_kml_footer(kmlf)
@@ -296,6 +300,7 @@ def list_models():
             left -= 1
         default = m.name == _default_model
         sys.stdout.write("]%s\n" % (" (default) " if default else ""))
+
 
 def main(argv):
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
