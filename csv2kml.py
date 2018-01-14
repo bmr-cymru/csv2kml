@@ -235,6 +235,7 @@ def make_field_map(header, name_map):
     _log_debug("built field map with %d fields" % len(names))
     return field_map
 
+
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
                 thresh=1000, field_map=None):
     """Process one CSV file and write the results to `kmlf`.
@@ -267,7 +268,6 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         elif not field_map:
             _log_error("No header found and no field map specified")
             raise Exception("Cannot process data without field map")
-
 
         f = line.strip().split(',')
 
@@ -306,7 +306,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
     if len(csv_data):
         _log_info("built CSV data table with %d rows and %d keys" %
-                   (len(csv_data), len(csv_data[0].keys())))
+                  (len(csv_data), len(csv_data[0].keys())))
     else:
         raise Exception("No non-skipped data rows found")
 
