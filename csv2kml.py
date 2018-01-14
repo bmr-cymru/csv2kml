@@ -107,6 +107,13 @@ MODE_PLACE = "placemark"
 ALT_ABSOLUTE = __alt_absolute
 ALT_REL_GROUND = __alt_rel_ground
 
+__colors = {
+    'red': 'ffff0000',
+    'green': 'ff00ff00',
+    'blue' : 'ff0000ff',
+    'yellow': 'ff00ffff'
+}
+
 class _indent(object):
     enable = True
     level = 0
@@ -224,14 +231,14 @@ def write_icon_style(kmlf, icon_id, href, indent):
     _log_debug("wrote icon style (id='%s')" % icon_id)
 
 
-def write_style_headers(kmlf, width, indent):
+def write_style_headers(kmlf, width, color, indent):
     """Write out line and icon style headers.
     """
     icon_start = "http://www.earthpoint.us/Dots/GoogleEarth/pal2/icon13.png"
     icon_end = "http://www.earthpoint.us/Dots/GoogleEarth/shapes/target.png"
     write_tag(kmlf, __style % "lineStyle1", indent)
     write_tag(kmlf, __linestyle, indent)
-    write_tag(kmlf, __color, indent, value="ff00ffff")
+    write_tag(kmlf, __color, indent, value=color)
     write_tag(kmlf, __width, indent, value=str(width))
     close_tag(kmlf, __linestyle, indent)
     close_tag(kmlf, __style, indent)
@@ -326,7 +333,7 @@ def make_field_map(header, name_map):
 
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
                 thresh=1000, state_marks=False, indent_kml=True,
-                track_width=4, field_map=None):
+                track_width=4, track_color="ff00ffff", field_map=None):
     """Process one CSV file and write the results to `kmlf`.
     """
     fields = None
@@ -338,7 +345,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     indent = _indent(enable=indent_kml)
 
     write_kml_header(kmlf, indent)
-    write_style_headers(kmlf, track_width, indent)
+    write_style_headers(kmlf, track_width, track_color, indent)
 
     no_coord_skip = 0
     ts_delta_skip = 0
@@ -509,6 +516,23 @@ def shutdown_logging():
         _file_handler.close()
 
 
+def parse_color(color):
+    """Parse a color string or name and return the corresponding hexadecimal
+        color string.
+    """
+    if color in __colors.keys():
+        color = __colors[color]
+
+    if len(color) != 6 and len(color) != 8:
+        raise ValueError("invalid color string length: %d" % len(color))
+
+    color_chars = map(str, range(0,9)) + ['a','b','c','d','e','f']
+    chars_valid = [c in color_chars for c in color]
+    if not all(chars_valid):
+        raise ValueError("invalid characters in color string: %s" % color)
+    return color
+
+
 def csv2kml(args):
     if not args.input and sys.stdin.isatty():
         parser.print_help()
@@ -529,6 +553,8 @@ def csv2kml(args):
 
     indent = not args.no_indent
 
+    track_color = parse_color(args.color)
+
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
     except (IOError, OSError):
@@ -544,7 +570,7 @@ def csv2kml(args):
     return process_csv(csvf, kmlf, mode=mode, altitude=alt,
                        thresh=args.threshold, state_marks=args.state_marks,
                        indent_kml=indent, track_width=args.width,
-                       field_map=field_map)
+                       track_color=track_color, field_map=field_map)
 
 
 def main(argv):
@@ -552,6 +578,8 @@ def main(argv):
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
     parser.add_argument("-a", "--absolute", action="store_true",
                         help="Use absolute altitude mode", default=None)
+    parser.add_argument("-c", "--color", type=str, default="yellow",
+                        help="Set track color")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Enable Python exception debug output")
     parser.add_argument("-f", "--field-map", type=str, default=None,
