@@ -224,7 +224,7 @@ def write_icon_style(kmlf, icon_id, href, indent):
     _log_debug("wrote icon style (id='%s')" % icon_id)
 
 
-def write_style_headers(kmlf, indent):
+def write_style_headers(kmlf, width, indent):
     """Write out line and icon style headers.
     """
     icon_start = "http://www.earthpoint.us/Dots/GoogleEarth/pal2/icon13.png"
@@ -232,7 +232,7 @@ def write_style_headers(kmlf, indent):
     write_tag(kmlf, __style % "lineStyle1", indent)
     write_tag(kmlf, __linestyle, indent)
     write_tag(kmlf, __color, indent, value="ff00ffff")
-    write_tag(kmlf, __width, indent, value="4")
+    write_tag(kmlf, __width, indent, value=str(width))
     close_tag(kmlf, __linestyle, indent)
     close_tag(kmlf, __style, indent)
     write_icon_style(kmlf, "iconPathStart", icon_start, indent)
@@ -326,7 +326,7 @@ def make_field_map(header, name_map):
 
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
                 thresh=1000, state_marks=False, indent_kml=True,
-                field_map=None):
+                track_width=4, field_map=None):
     """Process one CSV file and write the results to `kmlf`.
     """
     fields = None
@@ -338,7 +338,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     indent = _indent(enable=indent_kml)
 
     write_kml_header(kmlf, indent)
-    write_style_headers(kmlf, indent)
+    write_style_headers(kmlf, track_width, indent)
 
     no_coord_skip = 0
     ts_delta_skip = 0
@@ -543,7 +543,8 @@ def csv2kml(args):
 
     return process_csv(csvf, kmlf, mode=mode, altitude=alt,
                        thresh=args.threshold, state_marks=args.state_marks,
-                       indent_kml=indent, field_map=field_map)
+                       indent_kml=indent, track_width=args.width,
+                       field_map=field_map)
 
 
 def main(argv):
@@ -573,6 +574,8 @@ def main(argv):
                         help="Time difference threshold for sampling (ms)")
     parser.add_argument("-v", "--verbose", action="count",
                         help="Enable verbose output")
+    parser.add_argument("-w", "--width", type=int, default=4,
+                        help="Track line width for track mode")
 
     args = parser.parse_args()
 
