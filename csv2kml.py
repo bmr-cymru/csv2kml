@@ -107,22 +107,26 @@ MODE_PLACE = "placemark"
 ALT_ABSOLUTE = __alt_absolute
 ALT_REL_GROUND = __alt_rel_ground
 
-__indstr = ""
-__indented = True
+class _indent(object):
+    enable = True
+    level = 0
 
+    def __init__(self, enable=True):
+        self.enable = enable
 
-def __indent():
-    global __indstr
-    if not __indented:
-        return
-    __indstr += '    '
+    @property
+    def indstr(self):
+        return "    " * self.level
 
+    def indent(self):
+        if not self.enable:
+            return
+        self.level += 1
 
-def __undent():
-    global __indstr
-    if not __indented:
-        return
-    __indstr = __indstr[0:-4]
+    def undent(self):
+        if not self.enable:
+            return
+        self.level -= 1
 
 
 def sync_kml_file(kmlf):
@@ -132,22 +136,22 @@ def sync_kml_file(kmlf):
         os.fsync(kmlf)
 
 
-def write_tag(kmlf, tag, value=None):
+def write_tag(kmlf, tag, indent, value=None):
     nl = "\n"
     has_value = value is not None
     tag_open = "%s%s" % (__xml_open % tag, "" if has_value else nl)
-    kmlf.write(__indstr + tag_open)
+    kmlf.write(indent.indstr + tag_open)
 
-    remaining = 72 - len(tag_open + __indstr)
+    remaining = 72 - len(tag_open + indent.indstr)
     oneline = has_value and (nl not in value or len(value) < remaining)
 
     if has_value:
         if not oneline:
             kmlf.write('\n')
             value_end = "\n"
-            tag_indent = __indstr
-            __indent()
-            val_indent = __indstr
+            tag_indent = indent
+            indent.indent()
+            val_indent = indent
         else:
             value_end = ""
             val_indent = ""
@@ -156,88 +160,89 @@ def write_tag(kmlf, tag, value=None):
         kmlf.write(val_indent + value + value_end)
 
         if not oneline:
-            __undent()
+            indent.undent()
 
         kmlf.write(tag_indent + __xml_close % tag + "\n")
 
     if not oneline:
-        __indent()
+        indent.indent()
 
 
-def close_tag(kmlf, tag):
-    __undent()
+def close_tag(kmlf, tag, indent):
+    indent.undent()
     tag = tag.split()[0]
-    kmlf.write(__indstr + __xml_close % tag + "\n")
+    kmlf.write(indent.indstr + __xml_close % tag + "\n")
 
 
-def write_kml_header(kmlf):
+def write_kml_header(kmlf, indent):
     """Write generic KML header tags.
     """
     kmlf.write(__xml_header + '\n')
-    write_tag(kmlf, __kml)
-    write_tag(kmlf, __doc)
+    write_tag(kmlf, __kml, indent)
+    write_tag(kmlf, __doc, indent)
     _log_debug("wrote KML headers")
 
 
-def write_kml_footer(kmlf):
+def write_kml_footer(kmlf, indent):
     """Write generic KML footer tags.
     """
-    close_tag(kmlf, __doc)
-    close_tag(kmlf, __kml)
+    close_tag(kmlf, __doc, indent)
+    close_tag(kmlf, __kml, indent)
     _log_debug("wrote KML footers")
 
 
-def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND, name=None):
+def write_placemark(kmlf, data, style, indent,
+                    altitude=ALT_REL_GROUND, name=None):
     """Write a placemark with optional style.
     """
     coords = "%s,%s,%s" % (data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT])
     name = name if name else data[F_TICK]
-    write_tag(kmlf, __place)
-    write_tag(kmlf, __name, value=name)
-    write_tag(kmlf, __desc, value=data[F_TICK])
+    write_tag(kmlf, __place, indent)
+    write_tag(kmlf, __name, indent, value=name)
+    write_tag(kmlf, __desc, indent, value=data[F_TICK])
     if style:
-        write_tag(kmlf, __styleurl, value=style)
-    write_tag(kmlf, __point)
-    write_tag(kmlf, __coord, value=coords)
-    write_tag(kmlf, __altitude, value=altitude)
-    write_tag(kmlf, __extrude, value="1")
-    close_tag(kmlf, __point)
-    close_tag(kmlf, __place)
+        write_tag(kmlf, __styleurl, indent, value=style)
+    write_tag(kmlf, __point, indent)
+    write_tag(kmlf, __coord, indent, value=coords)
+    write_tag(kmlf, __altitude, indent, value=altitude)
+    write_tag(kmlf, __extrude, indent, value="1")
+    close_tag(kmlf, __point, indent)
+    close_tag(kmlf, __place, indent)
     _log_debug("wrote placemark (name='%s')" % name)
 
 
-def write_icon_style(kmlf, icon_id, href):
+def write_icon_style(kmlf, icon_id, href, indent):
     """Write an icon style with an image link.
     """
-    write_tag(kmlf, __style % icon_id)
-    write_tag(kmlf, __iconstyle)
-    write_tag(kmlf, __icon)
-    write_tag(kmlf, __href, value=href)
-    close_tag(kmlf, __icon)
-    close_tag(kmlf, __iconstyle)
-    close_tag(kmlf, __style)
+    write_tag(kmlf, __style % icon_id, indent)
+    write_tag(kmlf, __iconstyle, indent)
+    write_tag(kmlf, __icon, indent)
+    write_tag(kmlf, __href, indent, value=href)
+    close_tag(kmlf, __icon, indent)
+    close_tag(kmlf, __iconstyle, indent)
+    close_tag(kmlf, __style, indent)
     _log_debug("wrote icon style (id='%s')" % icon_id)
 
 
-def write_style_headers(kmlf):
+def write_style_headers(kmlf, indent):
     """Write out line and icon style headers.
     """
     icon_start = "http://www.earthpoint.us/Dots/GoogleEarth/pal2/icon13.png"
     icon_end = "http://www.earthpoint.us/Dots/GoogleEarth/shapes/target.png"
-    write_tag(kmlf, __style % "lineStyle1")
-    write_tag(kmlf, __linestyle)
-    write_tag(kmlf, __color, value="ff00ffff")
-    write_tag(kmlf, __width, value="4")
-    close_tag(kmlf, __linestyle)
-    close_tag(kmlf, __style)
-    write_icon_style(kmlf, "iconPathStart", icon_start)
-    write_icon_style(kmlf, "iconPathEnd", icon_end)
+    write_tag(kmlf, __style % "lineStyle1", indent)
+    write_tag(kmlf, __linestyle, indent)
+    write_tag(kmlf, __color, indent, value="ff00ffff")
+    write_tag(kmlf, __width, indent, value="4")
+    close_tag(kmlf, __linestyle, indent)
+    close_tag(kmlf, __style, indent)
+    write_icon_style(kmlf, "iconPathStart", icon_start, indent)
+    write_icon_style(kmlf, "iconPathEnd", icon_end, indent)
     _log_debug("wrote style headers")
 
 
-def write_state_placemarks(kmlf, csv_data, altitude=ALT_REL_GROUND):
+def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
     fly_state = None
-    write_tag(kmlf, __folder)
+    write_tag(kmlf, __folder, indent)
     for data in csv_data:
         new_fly_state = data[F_FLY_STATE]
         if fly_state:
@@ -245,48 +250,50 @@ def write_state_placemarks(kmlf, csv_data, altitude=ALT_REL_GROUND):
                 _log_info("fly state changed from '%s' to '%s'" %
                           (fly_state, new_fly_state))
                 name = "%s:%s" % (fly_state, new_fly_state)
-                write_placemark(kmlf, data, None, altitude=altitude, name=name)
+                write_placemark(kmlf, data, None, indent,
+                                altitude=altitude, name=name)
         fly_state = new_fly_state
-    close_tag(kmlf, __folder)
+    close_tag(kmlf, __folder, indent)
 
 
-def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND, name=None):
+def write_track_header(kmlf, csv_data, indent,
+                       altitude=ALT_REL_GROUND, name=None):
     """Write a track header with a pair of start/end placemarks.
     """
     # Start/end folder
-    write_tag(kmlf, __folder)
+    write_tag(kmlf, __folder, indent)
     # Write start placemark
-    write_placemark(kmlf, csv_data[0], " #iconPathStart", altitude=altitude,
-                    name="Start")
+    write_placemark(kmlf, csv_data[0], " #iconPathStart", indent,
+                    altitude=altitude, name="Start")
     # Write end placemark
-    write_placemark(kmlf, csv_data[-1], " #iconPathEnd", altitude=altitude,
-                    name="End")
-    close_tag(kmlf, __folder)
+    write_placemark(kmlf, csv_data[-1], " #iconPathEnd", indent,
+                    altitude=altitude, name="End")
+    close_tag(kmlf, __folder, indent)
     # Track folder
-    write_tag(kmlf, __folder)
-    write_tag(kmlf, __place)
-    write_tag(kmlf, __name, value=name if name else 'Flight Trace')
-    write_tag(kmlf, __desc, value='')
-    write_tag(kmlf, __styleurl, value='#lineStyle1')
-    write_tag(kmlf, __linestr)
-    write_tag(kmlf, __extrude, value="0")
-    write_tag(kmlf, __tessellate, value="0")
-    write_tag(kmlf, __altitude, value=altitude)
-    write_tag(kmlf, __coord)
+    write_tag(kmlf, __folder, indent)
+    write_tag(kmlf, __place, indent)
+    write_tag(kmlf, __name, indent, value=name if name else 'Flight Trace')
+    write_tag(kmlf, __desc, indent, value='')
+    write_tag(kmlf, __styleurl, indent, value='#lineStyle1')
+    write_tag(kmlf, __linestr, indent)
+    write_tag(kmlf, __extrude, indent, value="0")
+    write_tag(kmlf, __tessellate, indent, value="0")
+    write_tag(kmlf, __altitude, indent, value=altitude)
+    write_tag(kmlf, __coord, indent)
     _log_debug("wrote track header (name='%s')" % name)
 
 
-def write_track_footer(kmlf):
+def write_track_footer(kmlf, indent):
     """Write a generic track footer closing all tags.
     """
-    close_tag(kmlf, __coord)
-    close_tag(kmlf, __linestr)
-    close_tag(kmlf, __place)
-    close_tag(kmlf, __folder)
+    close_tag(kmlf, __coord, indent)
+    close_tag(kmlf, __linestr, indent)
+    close_tag(kmlf, __place, indent)
+    close_tag(kmlf, __folder, indent)
     _log_debug("wrote track footer")
 
 
-def write_coords(kmlf, data):
+def write_coords(kmlf, data, indent):
     """Write one line of coordinate data in a LinsString object.
     """
     coord_data = (
@@ -294,7 +301,7 @@ def write_coords(kmlf, data):
         data[F_GPS_LAT],
         data[F_GPS_ALT]
     )
-    kmlf.write(__indstr + "%s,%s,%s\n" % coord_data)
+    kmlf.write(indent.indstr + "%s,%s,%s\n" % coord_data)
 
 
 def make_field_map(header, name_map):
@@ -312,7 +319,8 @@ def make_field_map(header, name_map):
 
 
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
-                thresh=1000, state_marks=False, field_map=None):
+                thresh=1000, state_marks=False, indent_kml=True,
+                field_map=None):
     """Process one CSV file and write the results to `kmlf`.
     """
     fields = None
@@ -321,8 +329,10 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
     _log_info("Processing CSV data from %s" % csvf.name)
 
-    write_kml_header(kmlf)
-    write_style_headers(kmlf)
+    indent = _indent(enable=indent_kml)
+
+    write_kml_header(kmlf, indent)
+    write_style_headers(kmlf, indent)
 
     no_coord_skip = 0
     ts_delta_skip = 0
@@ -393,16 +403,16 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
     # Write fly state change placemarks
     if state_marks:
-        write_state_placemarks(kmlf, csv_data, altitude=altitude)
+        write_state_placemarks(kmlf, csv_data, indent, altitude=altitude)
 
     if track:
-        write_track_header(kmlf, csv_data, altitude=altitude)
+        write_track_header(kmlf, csv_data, indent, altitude=altitude)
 
     for data in csv_data:
         if not track:
-            write_placemark(kmlf, data, None, altitude=altitude)
+            write_placemark(kmlf, data, None, indent, altitude=altitude)
         else:
-            write_coords(kmlf, data)
+            write_coords(kmlf, data, indent)
 
     if not track:
         _log_info("wrote placemark data")
@@ -410,9 +420,9 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         _log_info("wrote track coordinate data")
 
     if track:
-        write_track_footer(kmlf)
+        write_track_footer(kmlf, indent)
 
-    write_kml_footer(kmlf)
+    write_kml_footer(kmlf, indent)
     sync_kml_file(kmlf)
 
 
@@ -494,7 +504,6 @@ def shutdown_logging():
 
 
 def csv2kml(args):
-    global __indented
     if not args.input and sys.stdin.isatty():
         parser.print_help()
         raise ValueError("No input file specified.")
@@ -512,7 +521,7 @@ def csv2kml(args):
     args.output = None if args.output == '-' else args.output
     args.input = None if args.input == '-' else args.input
 
-    __indented = False if args.no_indent else True
+    indent = not args.no_indent
 
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
@@ -528,7 +537,7 @@ def csv2kml(args):
 
     return process_csv(csvf, kmlf, mode=mode, altitude=alt,
                        thresh=args.threshold, state_marks=args.state_marks,
-                       field_map=field_map)
+                       indent_kml=indent, field_map=field_map)
 
 
 def main(argv):
@@ -566,13 +575,16 @@ def main(argv):
     if args.debug:
         __debug = True
 
+    if __debug:
+        csv2kml(args)
+        shutdown_logging()
+        return 0
+
     try:
         csv2kml(args)
     except Exception as e:
-        if not __debug:
-            print(e)
-            return 1
-        raise e
+        print(e)
+        return 1
     finally:
         shutdown_logging()
     return 0
