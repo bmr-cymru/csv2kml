@@ -230,7 +230,6 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     """Process one CSV file and write the results to `kmlf`.
     """
     fields = None
-    first = True
     csv_data = []
     track = mode == MODE_TRACK
 
