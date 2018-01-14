@@ -23,6 +23,8 @@ from argparse import ArgumentParser
 from os.path import basename
 import logging
 
+# debug state
+__debug = False
 # Log configuration
 _log = logging.getLogger(__name__)
 
@@ -529,9 +531,12 @@ def csv2kml(args):
 
 
 def main(argv):
+    global __debug
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
     parser.add_argument("-a", "--absolute", action="store_true",
                         help="Use absolute altitude mode", default=None)
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Enable Python exception debug output")
     parser.add_argument("-f", "--field-map", type=str, default=None,
                         help="Specify a manual field map")
     parser.add_argument("-F", "--field-file", type=str, default=None,
@@ -557,11 +562,16 @@ def main(argv):
 
     setup_logging(args)
 
+    if args.debug:
+        __debug = True
+
     try:
         csv2kml(args)
     except Exception as e:
-        print(e)
-        return 1
+        if not __debug:
+            print(e)
+            return 1
+        raise e
     return 0
 
 
