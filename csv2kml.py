@@ -275,7 +275,11 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     # Get model field mapping
     modmap = _model_names[model].map
 
+    no_coord_skip = 0
+    ts_delta_skip = 0
+    ts_none_skip = 0
     last_ts = 0
+
     # Acquire data points
     for line in csvf:
         if line.startswith("Tick"):
@@ -289,10 +293,10 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         ts = int(getfield(F_FLIGHT_TIME)) if getfield(F_FLIGHT_TIME) else None
 
         # Skip row if time delta < threshold
-        if not ts or (ts - last_ts) < thresh:
-            reason = "no ts" if not ts else "ts_delta < thresh"
-            _log_debug("skipping row with %s" % reason)
-            continue
+        if not ts:
+            ts_none_skip += 1
+        elif (ts - last_ts) < thresh:
+            ts_delta_skip += 1
 
         last_ts = ts
 
@@ -302,10 +306,18 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         # Skip row if coordinate data is null or zero
         coords = [data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT]]
         if not any(coords) or all([d == "0.0" for d in coords]):
-            _log_debug("skipping row with null or zero coordinates")
+            no_coord_skip += 1
             continue
 
         csv_data.append(data)
+
+    if ts_none_skip:
+        _log_debug("skipped %d rows with null timestamp" % ts_none_skip)
+    if ts_delta_skip:
+        _log_debug("skipped %d rows with ts_delta < thresh" % ts_delta_skip)
+    if no_coord_skip:
+        _log_debug("skipped %d rows with null coordinates" % no_coord_skip)
+
     _log_info("built CSV data table with %d rows and %d keys" %
                (len(csv_data), len(csv_data[0].keys())))
 
