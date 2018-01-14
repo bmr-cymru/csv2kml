@@ -229,6 +229,8 @@ def make_field_map(header, name_map):
     headers = header.strip().split(',')
     for name in names:
         idx = headers.index(name_map[name])
+        _log_debug("mapping field %s to index %d ('%s')" %
+                   (name, idx, headers[idx]))
         field_map[name] = idx
     _log_debug("built field map with %d fields" % len(names))
     return field_map
