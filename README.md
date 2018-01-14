@@ -9,13 +9,18 @@ Usage:
 ```
 Options:
 
-  * `-a` Use absolute altitude (default is ground relative)
-  * `-f` Input CSV file path
-  * `-o` Output KML file path
-  * `-l` List supported drone models
-  * `-m` Specify the drone model to use by name or alias
-  * `-p` Generate placemarkers instead of a track
+  * `-a` Use absolute altitude mode
+  * `-f` Specify a manual field map
+  * `-F` Specify a field map file
+  * `-h` Show help message and exit
+  * `-i` Input file path
+  * `-l` File to write log to instead of terminal
+  * `-n` Do not indent KML output
+  * `-o` Output file path
+  * `-p` Output placemarks instead of track
   * `-t` Time difference threshold for sampling (ms)
+  * `-v` Enable verbose output
+
 
 Authors:
 
