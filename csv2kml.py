@@ -242,6 +242,7 @@ def write_style_headers(kmlf, indent):
 
 def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
     fly_state = None
+    _log_debug("starting state placemarks folder")
     write_tag(kmlf, __folder, indent)
     for data in csv_data:
         new_fly_state = data[F_FLY_STATE]
@@ -253,6 +254,7 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
                 write_placemark(kmlf, data, None, indent,
                                 altitude=altitude, name=name)
         fly_state = new_fly_state
+    _log_debug("ending state placemarks folder")
     close_tag(kmlf, __folder, indent)
 
 
@@ -261,6 +263,7 @@ def write_track_header(kmlf, csv_data, indent,
     """Write a track header with a pair of start/end placemarks.
     """
     # Start/end folder
+    _log_debug("starting track placemarks folder")
     write_tag(kmlf, __folder, indent)
     # Write start placemark
     write_placemark(kmlf, csv_data[0], " #iconPathStart", indent,
@@ -268,8 +271,10 @@ def write_track_header(kmlf, csv_data, indent,
     # Write end placemark
     write_placemark(kmlf, csv_data[-1], " #iconPathEnd", indent,
                     altitude=altitude, name="End")
+    _log_debug("ending track placemarks folder")
     close_tag(kmlf, __folder, indent)
     # Track folder
+    _log_debug("starting track data folder")
     write_tag(kmlf, __folder, indent)
     write_tag(kmlf, __place, indent)
     write_tag(kmlf, __name, indent, value=name if name else 'Flight Trace')
@@ -289,6 +294,7 @@ def write_track_footer(kmlf, indent):
     close_tag(kmlf, __coord, indent)
     close_tag(kmlf, __linestr, indent)
     close_tag(kmlf, __place, indent)
+    _log_debug("ending track data folder")
     close_tag(kmlf, __folder, indent)
     _log_debug("wrote track footer")
 
