@@ -19,6 +19,18 @@ import os
 import sys
 from argparse import ArgumentParser
 from os.path import basename
+import logging
+
+# Log configuration
+_log = logging.getLogger(__name__)
+
+_default_log_level = logging.WARNING
+_console_handler = None
+
+_log_debug = _log.debug
+_log_info = _log.info
+_log_warn = _log.warning
+_log_error = _log.error
 
 # XML document header
 __xml_header = '<?xml version="1.0" encoding="UTF-8"?>'
@@ -258,6 +270,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     # Acquire data points
     for line in csvf:
         if line.startswith("Tick"):
+            _log_debug("skipping header row")
             continue
         f = line.strip().split(',')
 
@@ -268,6 +281,8 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
         # Skip row if time delta < threshold
         if not ts or (ts - last_ts) < thresh:
+            reason = "no ts" if not ts else "ts_delta < thresh"
+            _log_debug("skipping row with %s" % reason)
             continue
 
         last_ts = ts
@@ -278,9 +293,12 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         # Skip row if coordinate data is null or zero
         coords = [data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT]]
         if not any(coords) or all([d == "0.0" for d in coords]):
+            _log_debug("skipping row with null or zero coordinates")
             continue
 
         csv_data.append(data)
+    _log_debug("built CSV data table with %d rows and %d keys" %
+               (len(csv_data), len(csv_data[0].keys())))
 
     if track:
         write_track_header(kmlf, csv_data, altitude=altitude)
@@ -310,6 +328,24 @@ def list_models():
         sys.stdout.write("]%s\n" % (" (default) " if default else ""))
 
 
+def setup_logging(args):
+    global _console_handler
+    level = _default_log_level
+
+    if args.verbose:
+        if args.verbose > 1:
+            level = logging.DEBUG
+        elif args.verbose > 0:
+            level = logging.INFO
+
+    formatter = logging.Formatter('%(levelname)s - %(message)s')
+    _log.setLevel(level)
+    _console_handler = logging.StreamHandler()
+    _console_handler.setLevel(level)
+    _console_handler.setFormatter(formatter)
+    _log.addHandler(_console_handler)
+
+
 def main(argv):
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
     parser.add_argument("-a", "--absolute", action="store_true",
@@ -326,8 +362,12 @@ def main(argv):
                         help="Output placemarks instead of track")
     parser.add_argument("-t", "--threshold", type=int, default=1000,
                         help="Time difference threshold for sampling (ms)")
+    parser.add_argument("-v", "--verbose", action="count",
+                        help="Enable verbose output")
 
     args = parser.parse_args()
+
+    setup_logging(args)
 
     if not args.input and sys.stdin.isatty():
         parser.print_help()
