@@ -289,12 +289,13 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 def list_models():
     print("Supported device models:")
     for m in __models:
-        sys.stdout.write("Name: %s [" % m.name)
+        sys.stdout.write("  %s [" % m.name)
         left = len(m.aliases) - 1
         for a in m.aliases:
             sys.stdout.write("%s%s" % (a, " " if left else ""))
             left -= 1
-        sys.stdout.write("]\n")
+        default = m.name == _default_model
+        sys.stdout.write("]%s\n" % (" (default) " if default else ""))
 
 def main(argv):
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
