@@ -153,6 +153,7 @@ def write_kml_header(kmlf):
     kmlf.write(__xml_header + '\n')
     write_tag(kmlf, __kml)
     write_tag(kmlf, __doc)
+    _log_debug("wrote KML headers")
 
 
 def write_kml_footer(kmlf):
@@ -160,6 +161,7 @@ def write_kml_footer(kmlf):
     """
     close_tag(kmlf, __doc)
     close_tag(kmlf, __kml)
+    _log_debug("wrote KML footers")
 
 
 def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND, name=None):
@@ -178,6 +180,7 @@ def write_placemark(kmlf, data, style, altitude=ALT_REL_GROUND, name=None):
     write_tag(kmlf, __extrude, value="1")
     close_tag(kmlf, __point)
     close_tag(kmlf, __place)
+    _log_debug("wrote placemark (name='%s')" % name)
 
 
 def write_icon_style(kmlf, icon_id, href):
@@ -190,6 +193,7 @@ def write_icon_style(kmlf, icon_id, href):
     close_tag(kmlf, __icon)
     close_tag(kmlf, __iconstyle)
     close_tag(kmlf, __style)
+    _log_debug("wrote icon style (id='%s')" % icon_id)
 
 
 def write_style_headers(kmlf):
@@ -205,6 +209,7 @@ def write_style_headers(kmlf):
     close_tag(kmlf, __style)
     write_icon_style(kmlf, "iconPathStart", icon_start)
     write_icon_style(kmlf, "iconPathEnd", icon_end)
+    _log_debug("wrote style headers")
 
 
 def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND, name=None):
@@ -230,6 +235,7 @@ def write_track_header(kmlf, csv_data, altitude=ALT_REL_GROUND, name=None):
     write_tag(kmlf, __tessellate, value="0")
     write_tag(kmlf, __altitude, value=altitude)
     write_tag(kmlf, __coord)
+    _log_debug("wrote track header (name='%s')" % name)
 
 
 def write_track_footer(kmlf):
@@ -239,6 +245,7 @@ def write_track_footer(kmlf):
     close_tag(kmlf, __linestr)
     close_tag(kmlf, __place)
     close_tag(kmlf, __folder)
+    _log_debug("wrote track footer")
 
 
 def write_coords(kmlf, data):
@@ -259,6 +266,8 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     fields = None
     csv_data = []
     track = mode == MODE_TRACK
+
+    _log_info("Processing CSV data from %s" % csvf.name)
 
     write_kml_header(kmlf)
     write_style_headers(kmlf)
@@ -297,8 +306,10 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
             continue
 
         csv_data.append(data)
-    _log_debug("built CSV data table with %d rows and %d keys" %
+    _log_info("built CSV data table with %d rows and %d keys" %
                (len(csv_data), len(csv_data[0].keys())))
+
+    _log_info("writing KML data")
 
     if track:
         write_track_header(kmlf, csv_data, altitude=altitude)
@@ -308,6 +319,11 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
             write_placemark(kmlf, data, None, altitude=altitude)
         else:
             write_coords(kmlf, data)
+
+    if not track:
+        _log_info("wrote placemark data")
+    else:
+        _log_info("wrote track coordinate data")
 
     if track:
         write_track_footer(kmlf)
@@ -388,13 +404,13 @@ def main(argv):
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
     except (IOError, OSError):
-        print("Could not open output file: %s" % (args.output or '-'))
+        log_error("Could not open output file: %s" % (args.output or '-'))
         raise
 
     try:
         csvf = sys.stdin if not args.input else open(args.input, "r")
     except (IOError, OSError):
-        print("Could not open input file: %s" % (args.input or '-'))
+        log_error("Could not open input file: %s" % (args.input or '-'))
         raise
 
     return process_csv(csvf, kmlf, mode=mode, altitude=alt, model=model,
