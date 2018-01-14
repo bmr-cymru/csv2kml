@@ -91,6 +91,20 @@ MODE_PLACE = "placemark"
 ALT_ABSOLUTE = __alt_absolute
 ALT_REL_GROUND = __alt_rel_ground
 
+__indstr = ""
+__indented = True
+
+def __indent():
+    global __indstr
+    if not __indented:
+        return
+    __indstr += '    '
+
+def __undent():
+    global __indstr
+    if not __indented:
+        return
+    __indstr = __indstr[0:-4]
 
 def sync_kml_file(kmlf):
     """Sync file data for the output KML file.
@@ -100,16 +114,40 @@ def sync_kml_file(kmlf):
 
 
 def write_tag(kmlf, tag, value=None):
+    nl = "\n"
     has_value = value is not None
-    kmlf.write("%s%s" % (__xml_open % tag, "" if has_value else "\n"))
-    if has_value:
-        kmlf.write(value)
-        kmlf.write(__xml_close % tag + "\n")
+    tag_open = "%s%s" % (__xml_open % tag, "" if has_value else nl)
+    kmlf.write(__indstr + tag_open)
 
+    remaining = 72 - len(tag_open + __indstr)
+    oneline = has_value and (nl not in value or len(value) < remaining)
+
+    if has_value:
+        if not oneline:
+            kmlf.write('\n')
+            value_end = "\n"
+            tag_indent = __indstr
+            __indent()
+            val_indent = __indstr
+        else:
+            value_end = ""
+            val_indent = ""
+            tag_indent = ""
+
+        kmlf.write(val_indent + value + value_end)
+
+        if not oneline:
+            __undent()
+
+        kmlf.write(tag_indent + __xml_close % tag + "\n")
+
+    if not oneline:
+        __indent()
 
 def close_tag(kmlf, tag):
+    __undent()
     tag = tag.split()[0]
-    kmlf.write(__xml_close % tag + "\n")
+    kmlf.write(__indstr + __xml_close % tag + "\n")
 
 
 def write_kml_header(kmlf):
@@ -221,7 +259,7 @@ def write_coords(kmlf, data):
         data[F_GPS_LAT],
         data[F_GPS_ALT]
     )
-    kmlf.write("%s,%s,%s\n" % coord_data)
+    kmlf.write(__indstr + "%s,%s,%s\n" % coord_data)
 
 
 def make_field_map(header, name_map):
@@ -417,6 +455,7 @@ def shutdown_logging():
 
 
 def main(argv):
+    global __indented
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
     parser.add_argument("-a", "--absolute", action="store_true",
                         help="Use absolute altitude mode", default=None)
@@ -428,6 +467,8 @@ def main(argv):
                         help="Input file path", default=None)
     parser.add_argument("-l", "--log-file", metavar="LOG", default=None,
                         help="File to write log to instead of terminal")
+    parser.add_argument("-n", "--no-indent", action="store_true",
+                        help="Do not indent KML output")
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
                         help="Output file path", default=None)
     parser.add_argument("-p", "--placemarks", action="store_true",
@@ -455,6 +496,8 @@ def main(argv):
 
     args.output = None if args.output == '-' else args.output
     args.input = None if args.input == '-' else args.input
+
+    __indented = False if args.no_indent else True
 
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
