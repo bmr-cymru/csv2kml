@@ -73,9 +73,13 @@ F_GPS_TS = "F_GPS_TS"
 F_GPS_LONG = "F_GPS_LONG"
 F_GPS_LAT = "F_GPS_LAT"
 F_GPS_ALT = "F_GPS_ALT"
+F_FLY_STATE = "F_FLY_STATE"
 
-__fields = [F_TICK, F_FLIGHT_TIME, F_GPS_TS, F_GPS_LAT, F_GPS_LONG, F_GPS_ALT]
-
+__fields = [
+    F_TICK, F_FLIGHT_TIME, F_GPS_TS,
+    F_GPS_LAT, F_GPS_LONG, F_GPS_ALT,
+    F_FLY_STATE
+]
 
 #: Map csv2kml field names to DJI column headers
 __dji_header_map = {
@@ -84,8 +88,16 @@ __dji_header_map = {
     F_GPS_TS: "GPS:dateTimeStamp",
     F_GPS_LONG: "GPS:Long",
     F_GPS_LAT: "GPS:Lat",
-    F_GPS_ALT: "GPS:heightMSL"
+    F_GPS_ALT: "GPS:heightMSL",
+    F_FLY_STATE: "flyCState"
 }
+
+#: Fly states
+FS_AUTO_LAND = "AutoLanding"
+FS_AUTO_TAKEOFF = "AutoTakeoff"
+FS_GO_HOME = "GoHome"
+FS_GPS_ATTI = "GPS_Atti"
+FS_NAVI_GO = "NaviGo"
 
 MODE_TRACK = "track"
 MODE_PLACE = "placemark"
