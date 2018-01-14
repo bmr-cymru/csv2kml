@@ -110,17 +110,20 @@ ALT_REL_GROUND = __alt_rel_ground
 __indstr = ""
 __indented = True
 
+
 def __indent():
     global __indstr
     if not __indented:
         return
     __indstr += '    '
 
+
 def __undent():
     global __indstr
     if not __indented:
         return
     __indstr = __indstr[0:-4]
+
 
 def sync_kml_file(kmlf):
     """Sync file data for the output KML file.
@@ -159,6 +162,7 @@ def write_tag(kmlf, tag, value=None):
 
     if not oneline:
         __indent()
+
 
 def close_tag(kmlf, tag):
     __undent()
@@ -239,7 +243,7 @@ def write_state_placemarks(kmlf, csv_data, altitude=ALT_REL_GROUND):
         if fly_state:
             if new_fly_state != fly_state:
                 _log_info("fly state changed from '%s' to '%s'" %
-                    (fly_state, new_fly_state))
+                          (fly_state, new_fly_state))
                 name = "%s:%s" % (fly_state, new_fly_state)
                 write_placemark(kmlf, data, None, altitude=altitude, name=name)
         fly_state = new_fly_state
