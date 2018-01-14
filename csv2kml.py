@@ -251,17 +251,20 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
         ts = int(getfield(F_FLIGHT_TIME)) if getfield(F_FLIGHT_TIME) else None
 
+        # Skip row if time delta < threshold
         if not ts or (ts - last_ts) < thresh:
             continue
 
         last_ts = ts
 
+        # Build field_name -> value dictionary
         data = {f: getfield(f) for f in __fields}
-        if not data[F_GPS_LONG] or not data[F_GPS_LAT] or not data[F_GPS_ALT]:
-            continue
+
+        # Skip row if coordinate data is null or zero
         coords = [data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT]]
-        if all([d == "0.0" for d in coords]):
+        if not any(coords) or all([d == "0.0" for d in coords]):
             continue
+
         csv_data.append(data)
 
     if track:
