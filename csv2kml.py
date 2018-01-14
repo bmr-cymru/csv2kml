@@ -529,6 +529,9 @@ def main(argv):
     mode = MODE_PLACE if args.placemarks else MODE_TRACK
     alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
 
+    if not args.output and args.input:
+        args.output = args.input[0:-4] + ".kml"
+
     args.output = None if args.output == '-' else args.output
     args.input = None if args.input == '-' else args.input
 
