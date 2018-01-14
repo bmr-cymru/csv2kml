@@ -331,6 +331,10 @@ def main(argv):
 
     args = parser.parse_args()
 
+    if not args.input and sys.stdin.isatty():
+        parser.print_help()
+        raise ValueError("No input file specified.")
+
     __init_aliases()
 
     if args.list_models:
