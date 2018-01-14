@@ -314,8 +314,6 @@ def main(argv):
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
     parser.add_argument("-a", "--absolute", action="store_true",
                         help="Use absolute altitude mode", default=None)
-    parser.add_argument("-f", "--file", metavar="INPUT", type=str,
-                        help="Input file path", default=None)
     parser.add_argument("-i", "--input", metavar="INPUT", type=str,
                         help="Input file path", default=None)
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
@@ -345,7 +343,7 @@ def main(argv):
     model = args.model if args.model else _default_model
 
     args.output = None if args.output == '-' else args.output
-    args.file = None if args.file == '-' else args.file
+    args.input = None if args.input == '-' else args.input
 
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
@@ -354,9 +352,9 @@ def main(argv):
         raise
 
     try:
-        csvf = sys.stdin if not args.file else open(args.file, "r")
+        csvf = sys.stdin if not args.input else open(args.input, "r")
     except (IOError, OSError):
-        print("Could not open input file: %s" % (args.file or '-'))
+        print("Could not open input file: %s" % (args.input or '-'))
         raise
 
     return process_csv(csvf, kmlf, mode=mode, altitude=alt, model=model,
