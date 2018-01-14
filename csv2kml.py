@@ -74,51 +74,15 @@ F_GPS_ALT = "F_GPS_ALT"
 __fields = [F_TICK, F_FLIGHT_TIME, F_GPS_TS, F_GPS_LAT, F_GPS_LONG, F_GPS_ALT]
 
 
-class _model(object):
-    name = ""
-    map = None
-
-    def __init__(self, name, aliases, field_map):
-        self.map = field_map
-        self.name = name
-        self.aliases = aliases
-
-__models = [
-    _model("Inspire1", ["i1"],
-           {F_TICK: 0,
-            F_FLIGHT_TIME: 2,
-            F_GPS_TS: 47,
-            F_GPS_LONG: 43,
-            F_GPS_LAT: 44,
-            F_GPS_ALT: 48}),
-    _model("Inspire2", ["i2"],
-           {F_TICK: 0,
-            F_FLIGHT_TIME: 2,
-            F_GPS_TS: 56,
-            F_GPS_LONG: 52,
-            F_GPS_LAT: 53,
-            F_GPS_ALT: 57}),
-    _model("Phantom4", ["p4"],
-           {F_TICK: 0,
-            F_FLIGHT_TIME: 2,
-            F_GPS_TS: 56,
-            F_GPS_LONG: 52,
-            F_GPS_LAT: 53,
-            F_GPS_ALT: 57})
-]
-
-_default_model = __models[0].name
-
-_model_names = {m.name: m for m in __models}
-
-
-def __init_aliases():
-    global _model_names
-    for m in __models:
-        if m.aliases:
-            for a in m.aliases:
-                _model_names[a] = m
-
+#: Map csv2kml field names to DJI column headers
+__dji_header_map = {
+    F_TICK: "Tick#",
+    F_FLIGHT_TIME: "flightTime",
+    F_GPS_TS: "GPS:dateTimeStamp",
+    F_GPS_LONG: "GPS:Long",
+    F_GPS_LAT: "GPS:Lat",
+    F_GPS_ALT: "GPS:heightMSL"
+}
 
 MODE_TRACK = "track"
 MODE_PLACE = "placemark"
@@ -259,8 +223,18 @@ def write_coords(kmlf, data):
     kmlf.write("%s,%s,%s\n" % coord_data)
 
 
+def make_field_map(header, name_map):
+    field_map = {}
+    names = name_map.keys()
+    headers = header.strip().split(',')
+    for name in names:
+        idx = headers.index(name_map[name])
+        field_map[name] = idx
+    _log_debug("built field map with %d fields" % len(names))
+    return field_map
+
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
-                model=_default_model, thresh=1000):
+                thresh=1000, field_map=None):
     """Process one CSV file and write the results to `kmlf`.
     """
     fields = None
@@ -272,9 +246,6 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     write_kml_header(kmlf)
     write_style_headers(kmlf)
 
-    # Get model field mapping
-    modmap = _model_names[model].map
-
     no_coord_skip = 0
     ts_delta_skip = 0
     ts_none_skip = 0
@@ -282,13 +253,24 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
     # Acquire data points
     for line in csvf:
-        if line.startswith("Tick"):
+        if field_map and line.startswith("Tick"):
             _log_debug("skipping header row")
             continue
+        # replace with call to is_header_row() if multi-vendor
+        elif line.startswith("Tick"):
+            _log_debug("parsing field map from header row")
+            field_map = make_field_map(line, __dji_header_map)
+            _log_debug("field map: %s" % field_map)
+            continue
+        elif not field_map:
+            _log_error("No header found and no field map specified")
+            raise Exception("Cannot process data without field map")
+
+
         f = line.strip().split(',')
 
         def getfield(field):
-            return f[modmap[field]]
+            return f[field_map[field]]
 
         ts = int(getfield(F_FLIGHT_TIME)) if getfield(F_FLIGHT_TIME) else None
 
@@ -344,16 +326,39 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     sync_kml_file(kmlf)
 
 
-def list_models():
-    print("Supported device models:")
-    for m in __models:
-        sys.stdout.write("  %s [" % m.name)
-        left = len(m.aliases) - 1
-        for a in m.aliases:
-            sys.stdout.write("%s%s" % (a, " " if left else ""))
-            left -= 1
-        default = m.name == _default_model
-        sys.stdout.write("]%s\n" % (" (default) " if default else ""))
+def parse_field_map(map_string):
+    """Parse a field map string into a field_map dictionary.
+        The syntax of the map string is:
+
+         "FIELD1:column1,FIELD2:column2,..."
+    """
+    field_map = {}
+
+    for key_value in map_string.strip().split(","):
+        (key, value) = key_value.split(":")
+        if key not in __fields:
+            raise ValueError("Unknown field name: %s" % key)
+        try:
+            int_value = int(value)
+        except:
+            raise ValueError("Field map values must be integers: %s" % value)
+        field_map[key] = int_value
+    _log_debug("parsed field map with %d fields" % len(field_map.keys()))
+    return field_map
+
+
+def read_field_map_file(field_file):
+    map_string = ""
+    separator = ""
+    fields = 0
+    with open(field_file, "r") as f:
+        map_lines = f.readlines()
+        for line in map_lines:
+            map_string += separator + line.strip()
+            separator = ","
+            fields += 1
+    _log_info("read fields from field map file '%s'" % field_file)
+    return map_string
 
 
 def setup_logging(args):
@@ -378,14 +383,14 @@ def main(argv):
     parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
     parser.add_argument("-a", "--absolute", action="store_true",
                         help="Use absolute altitude mode", default=None)
+    parser.add_argument("-f", "--field-map", type=str, default=None,
+                        help="Specify a manual field map")
+    parser.add_argument("-F", "--field-file", type=str, default=None,
+                        help="Specify a manual field map file")
     parser.add_argument("-i", "--input", metavar="INPUT", type=str,
                         help="Input file path", default=None)
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
                         help="Output file path", default=None)
-    parser.add_argument("-l", "--list-models", action="store_true",
-                        help="List the supported drone models")
-    parser.add_argument("-m", "--model", metavar="DRONE", type=str,
-                        help="Model of drone CSV data")
     parser.add_argument("-p", "--placemarks", action="store_true",
                         help="Output placemarks instead of track")
     parser.add_argument("-t", "--threshold", type=int, default=1000,
@@ -401,14 +406,13 @@ def main(argv):
         parser.print_help()
         raise ValueError("No input file specified.")
 
-    __init_aliases()
+    if args.field_file and not args.field_map:
+        args.field_map = read_field_map_file(args.field_file)
 
-    if args.list_models:
-        return list_models()
+    field_map = parse_field_map(args.field_map) if args.field_map else None
 
     mode = MODE_PLACE if args.placemarks else MODE_TRACK
     alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
-    model = args.model if args.model else _default_model
 
     args.output = None if args.output == '-' else args.output
     args.input = None if args.input == '-' else args.input
@@ -425,8 +429,8 @@ def main(argv):
         log_error("Could not open input file: %s" % (args.input or '-'))
         raise
 
-    return process_csv(csvf, kmlf, mode=mode, altitude=alt, model=model,
-                       thresh=args.threshold)
+    return process_csv(csvf, kmlf, mode=mode, altitude=alt,
+                       thresh=args.threshold, field_map=field_map)
 
 if __name__ == '__main__':
     try:
