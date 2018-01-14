@@ -93,15 +93,6 @@ def __init_aliases():
                 _model_names[a] = m
 
 
-#: Map of field constants to data tuple elements
-__data_map = {
-    F_TICK: 0,
-    F_GPS_TS: 1,
-    F_GPS_LONG: 2,
-    F_GPS_LAT: 3,
-    F_GPS_ALT: 4
-}
-
 MODE_TRACK = "track"
 MODE_PLACE = "placemark"
 
