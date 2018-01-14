@@ -1,3 +1,18 @@
+# Copyright (C) 2017 Bryn M. Reeves <bmr@errorists.org>
+#
+# csv2kml.py - Convert DGI CSV black box data to KML
+#
+# This file is part of the csv2kml project.
+#
+# https://github.com/bmr-cymru/csv2kml
+#
+# This copyrighted material is made available to anyone wishing to use,
+# modify, copy, or redistribute it subject to the terms and conditions
+# of the GNU General Public License v.2.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 """cvs2kml.py - convert CSV data to KML
 """
 import os
