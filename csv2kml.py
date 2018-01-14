@@ -487,36 +487,8 @@ def shutdown_logging():
         _file_handler.close()
 
 
-def main(argv):
+def csv2kml(args):
     global __indented
-    parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
-    parser.add_argument("-a", "--absolute", action="store_true",
-                        help="Use absolute altitude mode", default=None)
-    parser.add_argument("-f", "--field-map", type=str, default=None,
-                        help="Specify a manual field map")
-    parser.add_argument("-F", "--field-file", type=str, default=None,
-                        help="Specify a manual field map file")
-    parser.add_argument("-i", "--input", metavar="INPUT", type=str,
-                        help="Input file path", default=None)
-    parser.add_argument("-l", "--log-file", metavar="LOG", default=None,
-                        help="File to write log to instead of terminal")
-    parser.add_argument("-n", "--no-indent", action="store_true",
-                        help="Do not indent KML output")
-    parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
-                        help="Output file path", default=None)
-    parser.add_argument("-p", "--placemarks", action="store_true",
-                        help="Output placemarks instead of track")
-    parser.add_argument("-s", "--state-marks", action="store_true",
-                        help="Output placemarkers when fly state changes")
-    parser.add_argument("-t", "--threshold", type=int, default=1000,
-                        help="Time difference threshold for sampling (ms)")
-    parser.add_argument("-v", "--verbose", action="count",
-                        help="Enable verbose output")
-
-    args = parser.parse_args()
-
-    setup_logging(args)
-
     if not args.input and sys.stdin.isatty():
         parser.print_help()
         raise ValueError("No input file specified.")
@@ -555,12 +527,44 @@ def main(argv):
 
     shutdown_logging()
 
-if __name__ == '__main__':
-    main(sys.argv)
+
+def main(argv):
+    parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
+    parser.add_argument("-a", "--absolute", action="store_true",
+                        help="Use absolute altitude mode", default=None)
+    parser.add_argument("-f", "--field-map", type=str, default=None,
+                        help="Specify a manual field map")
+    parser.add_argument("-F", "--field-file", type=str, default=None,
+                        help="Specify a manual field map file")
+    parser.add_argument("-i", "--input", metavar="INPUT", type=str,
+                        help="Input file path", default=None)
+    parser.add_argument("-l", "--log-file", metavar="LOG", default=None,
+                        help="File to write log to instead of terminal")
+    parser.add_argument("-n", "--no-indent", action="store_true",
+                        help="Do not indent KML output")
+    parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
+                        help="Output file path", default=None)
+    parser.add_argument("-p", "--placemarks", action="store_true",
+                        help="Output placemarks instead of track")
+    parser.add_argument("-s", "--state-marks", action="store_true",
+                        help="Output placemarkers when fly state changes")
+    parser.add_argument("-t", "--threshold", type=int, default=1000,
+                        help="Time difference threshold for sampling (ms)")
+    parser.add_argument("-v", "--verbose", action="count",
+                        help="Enable verbose output")
+
+    args = parser.parse_args()
+
+    setup_logging(args)
+
     try:
-        pass
-        #main(sys.argv)
+        csv2kml(args)
     except Exception as e:
         print(e)
-        sys.exit(1)
-    sys.exit(0)
+        return 1
+    return 0
+
+
+if __name__ == '__main__':
+    ret = main(sys.argv)
+    sys.exit(ret)
