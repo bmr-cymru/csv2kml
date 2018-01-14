@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright (C) 2018 Bryn M. Reeves <bmr@errorists.org>
 #
 # csv2kml.py - Convert DGI CSV black box data to KML
