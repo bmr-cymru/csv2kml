@@ -279,7 +279,9 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         # Skip row if time delta < threshold
         if not ts:
             ts_none_skip += 1
+            continue
         elif (ts - last_ts) < thresh:
+            continue
             ts_delta_skip += 1
 
         last_ts = ts
