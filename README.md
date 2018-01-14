@@ -10,6 +10,7 @@ usage: csv2kml.py [-h] [-a] [-d] [-f FIELD_MAP] [-F FIELD_FILE] [-i INPUT]
 Options:
 
   * `-a` Use absolute altitude mode
+  * `-c` Set track color
   * '-d' Enable Python exception debug output
   * `-f` Specify a manual field map
   * `-F` Specify a field map file
@@ -22,6 +23,7 @@ Options:
   * `-s` Output placemarkers when fly state changes
   * `-t` Time difference threshold for sampling (ms)
   * `-v` Enable verbose output
+  * `-w` Track line width for track mode
 
 
 Authors:
