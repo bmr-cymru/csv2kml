@@ -323,6 +323,9 @@ def main(argv):
     alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
     model = args.model if args.model else _default_model
 
+    args.output = None if args.output == '-' else args.output
+    args.file = None if args.file == '-' else args.file
+
     try:
         kmlf = sys.stdout if not args.output else open(args.output, "w")
     except (IOError, OSError):
