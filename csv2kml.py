@@ -360,6 +360,17 @@ def parse_field_map(map_string):
 
 
 def read_field_map_file(field_file):
+    """Read a field map from a file and parse it into a map_string that
+        can be further parsed into a field_map by parse_field_map.
+
+        The -F/--field-file syntax uses one field per line with each
+        line formatted as "FIELDN:indexN":
+
+          FIELD1:index1
+          FIELD2:index2
+          ...
+          FIELDN:indexN
+    """
     map_string = ""
     separator = ""
     fields = 0
