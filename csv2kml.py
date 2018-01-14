@@ -226,7 +226,8 @@ def write_coords(kmlf, data):
 def make_field_map(header, name_map):
     field_map = {}
     names = name_map.keys()
-    headers = header.strip().split(',')
+    # Hack to work around models that generate extra header tags.
+    headers = [h.split('[')[0] for h in header.strip().split(',')]
     for name in names:
         idx = headers.index(name_map[name])
         _log_debug("mapping field %s to index %d ('%s')" %
