@@ -65,7 +65,7 @@ __alt_absolute = 'absolute'
 
 #: Field constants for raw CSV columns
 F_TICK = "F_TICK"
-F_FLIGHT_TIME = "F_FLIGHT_TIME",
+F_FLIGHT_TIME = "F_FLIGHT_TIME"
 F_GPS_TS = "F_GPS_TS"
 F_GPS_LONG = "F_GPS_LONG"
 F_GPS_LAT = "F_GPS_LAT"
