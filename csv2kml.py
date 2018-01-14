@@ -304,8 +304,11 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     if no_coord_skip:
         _log_debug("skipped %d rows with null coordinates" % no_coord_skip)
 
-    _log_info("built CSV data table with %d rows and %d keys" %
-               (len(csv_data), len(csv_data[0].keys())))
+    if len(csv_data):
+        _log_info("built CSV data table with %d rows and %d keys" %
+                   (len(csv_data), len(csv_data[0].keys())))
+    else:
+        raise Exception("No non-skipped data rows found")
 
     _log_info("writing KML data")
 
