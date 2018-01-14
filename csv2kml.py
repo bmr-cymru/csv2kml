@@ -255,8 +255,11 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     ts_none_skip = 0
     last_ts = 0
 
+    header_read = False
     # Acquire data points
     for line in csvf:
+        if not header_read and not line.startswith("Tick"):
+            continue
         if field_map and line.startswith("Tick"):
             _log_debug("skipping header row")
             continue
@@ -265,6 +268,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
             _log_debug("parsing field map from header row")
             field_map = make_field_map(line, __dji_header_map)
             _log_debug("field map: %s" % field_map)
+            header_read = True
             continue
         elif not field_map:
             _log_error("No header found and no field map specified")
