@@ -94,10 +94,19 @@ __dji_header_map = {
 
 #: Fly states
 FS_AUTO_LAND = "AutoLanding"
+FS_ASST_TAKEOFF = "AssistedTakeoff"
 FS_AUTO_TAKEOFF = "AutoTakeoff"
 FS_GO_HOME = "GoHome"
 FS_GPS_ATTI = "GPS_Atti"
 FS_NAVI_GO = "NaviGo"
+
+#: Map known state aliases to canonical name.
+#: ASST_TAKEOFF seems to be an alias for FS_ASST_TAKEOFF, and some state
+#: values appear in CSV data with "Assisted" mis-spelled as "Assited".
+__fs_aliases = {
+    "ASST_TAKEOFF": FS_ASST_TAKEOFF,
+    "AssitedTakeoff": FS_ASST_TAKEOFF
+}
 
 MODE_TRACK = "track"
 MODE_PLACE = "placemark"
@@ -253,6 +262,9 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
     write_tag(kmlf, __folder, indent)
     for data in csv_data:
         new_fly_state = data[F_FLY_STATE]
+        # Handle state aliases
+        if new_fly_state in __fs_aliases:
+            new_fly_state = __fs_aliases[new_fly_state]
         if fly_state:
             if new_fly_state != fly_state:
                 _log_info("fly state changed from '%s' to '%s'" %
