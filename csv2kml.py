@@ -631,6 +631,8 @@ def read_field_map_file(field_file):
 
 
 def setup_logging(args):
+    """Set up logging to the terminal and optional log file.
+    """
     global _console_handler, _file_handler
     level = _default_log_level
 
@@ -655,6 +657,8 @@ def setup_logging(args):
 
 
 def shutdown_logging():
+    """ Close logging.
+    """
     if _console_handler:
         _console_handler.close()
     if _file_handler:
