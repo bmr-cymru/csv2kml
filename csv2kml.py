@@ -108,10 +108,14 @@ __fs_aliases = {
     "AssitedTakeoff": FS_ASST_TAKEOFF
 }
 
+#: Track mode: create a LineString corresponding to the flight track.
 MODE_TRACK = "track"
+#: Placemark mode: create a placemark for each CSV data point.
 MODE_PLACE = "placemark"
 
+#: Absolute altitude mode: values relative to sea level.
 ALT_ABSOLUTE = __alt_absolute
+#: Ground relative altitidue mode.
 ALT_REL_GROUND = __alt_rel_ground
 
 __colors = {
