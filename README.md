@@ -4,14 +4,14 @@ Simple script to convert DGI black box CSV data to KML
 
 Usage:
 ```
-usage: csv2kml.py [-h] [-a] [-d] [-f FIELD_MAP] [-F FIELD_FILE] [-i INPUT]
+usage: csv2kml.py [-h] [-a] [-c] [-d] [-f FIELD_MAP] [-F FIELD_FILE] [-i INPUT]
                   [-l LOG] [-n] [-o OUTPUT] [-p] [-s] [-t THRESHOLD] [-v]
 ```
 Options:
 
   * `-a` Use absolute altitude mode
   * `-c` Set track color
-  * '-d' Enable Python exception debug output
+  * `-d` Enable Python exception debug output
   * `-f` Specify a manual field map
   * `-F` Specify a field map file
   * `-h` Show help message and exit
