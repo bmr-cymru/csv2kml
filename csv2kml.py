@@ -787,9 +787,6 @@ def main(argv):
     setup_logging(args)
 
     if args.debug:
-        debug = True
-
-    if args.debug:
         csv2kml(args)
         shutdown_logging()
         return 0
