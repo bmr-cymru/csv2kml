@@ -118,6 +118,7 @@ ALT_ABSOLUTE = __alt_absolute
 #: Ground relative altitidue mode.
 ALT_REL_GROUND = __alt_rel_ground
 
+#: Map color aliases to hex ARGB color values
 __colors = {
     'red': 'ff0000ff',
     'green': 'ff00ff00',
