@@ -590,7 +590,7 @@ def parse_field_map(map_string):
         try:
             int_value = int(value)
         except:
-            raise ValueError("Field map values must be integers: %s" % value)
+            raise TypeError("Field map values must be integers: %s" % value)
         field_map[key] = int_value
     _log_debug("parsed field map with %d fields" % len(field_map.keys()))
     return field_map
