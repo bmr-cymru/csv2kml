@@ -580,6 +580,12 @@ def parse_field_map(map_string):
         The syntax of the map string is:
 
          "FIELD1:column1,FIELD2:column2,..."
+
+        ValueError is raised for unknown field names and TypeError
+        is raised if the column value cannot be parsed as an integer.
+
+        On success the field map is returned as a dictionary.
+
     """
     field_map = {}
 
@@ -607,6 +613,9 @@ def read_field_map_file(field_file):
           FIELD2:index2
           ...
           FIELDN:indexN
+
+        The file is parsed and the resulting string passed to
+        parse_field_map() to create a field map dictionary.
     """
     map_string = ""
     separator = ""
@@ -618,7 +627,7 @@ def read_field_map_file(field_file):
             separator = ","
             fields += 1
     _log_info("read fields from field map file '%s'" % field_file)
-    return map_string
+    return parse_field_map(map_string)
 
 
 def setup_logging(args):
