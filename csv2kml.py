@@ -129,22 +129,46 @@ __colors = {
 
 
 class _indent(object):
+    """Indentation context: the `_indent` class stores the current
+        indentation level and generates a suitable indentation string
+        on demand via the `indstr` property.
+
+        The indentation level is increased by callinf the `indent()`
+        method, and decreased by calling `undent().
+
+        Indentation may be disabled by calling the initialiser with
+        `enable=False`, or by setting the `enable` property at run time.
+    """
+    #: Enable indentation of KML output
     enable = True
+    #: Current indentation level
     level = 0
 
     def __init__(self, enable=True):
+        """Initialise a new `_indent` object with the specified enable
+            state.
+        """
         self.enable = enable
 
     @property
     def indstr(self):
+        """Return the current indentation as a string suitable for
+            terminal or file output.
+        """
+        if not self.enable:
+            return ""
         return "    " * self.level
 
     def indent(self):
+        """Increase indentation by one level.
+        """
         if not self.enable:
             return
         self.level += 1
 
     def undent(self):
+        """Decrease indentation by one level.
+        """
         if not self.enable:
             return
         self.level -= 1
