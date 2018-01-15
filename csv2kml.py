@@ -182,11 +182,31 @@ def sync_kml_file(kmlf):
 
 
 def write_tag(kmlf, tag, indent, value=None):
+    """Write a KML tag.
+
+        Write a KML tag, with or without a value. If no tag value is
+        given, the tag will be written as a one line '<tag>' with no
+        closing tag. The `close_tag()` function should be used to close
+        the tag at a later time after writing the tag body.
+
+        If a value is specified, and it appears to fit on a single 80
+        character line of output (with the opening and closing tags), it
+        will be written as a single '<tag>value</tag>' line.
+
+        Otherwise the tag, value line(s), and closing tag will be
+        written on subsequent lines and indented according to the
+        current indent state.
+    """
     nl = "\n"
+
+    # Use "not None" as "" etc. is a valid tag value
     has_value = value is not None
+
+    # Write opening tag
     tag_open = "%s%s" % (__xml_open % tag, "" if has_value else nl)
     kmlf.write(indent.indstr + tag_open)
 
+    # Check to see if node with value fits on a single line
     remaining = 72 - len(tag_open + indent.indstr)
     oneline = has_value and (nl not in value or len(value) < remaining)
 
@@ -209,6 +229,7 @@ def write_tag(kmlf, tag, indent, value=None):
         if not oneline:
             indent.undent()
 
+        # Write closing tag after value
         kmlf.write(tag_indent + __xml_close % tag + "\n")
 
     if not oneline:
@@ -216,8 +237,13 @@ def write_tag(kmlf, tag, indent, value=None):
 
 
 def close_tag(kmlf, tag, indent):
+    """Write a closing XML tag and un-indent.
+    """
+    # write_tag() has called indent() for a node with a value
     indent.undent()
+    # Closing tag only uses the first word of the tag string.
     tag = tag.split()[0]
+    # Write closing tag
     kmlf.write(indent.indstr + __xml_close % tag + "\n")
 
 
@@ -243,16 +269,26 @@ def write_placemark(kmlf, data, style, indent,
     """Write a placemark with optional style.
     """
     coords = "%s,%s,%s" % (data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT])
+
+    # Use the Tick# for the name unless specified
     name = name if name else data[F_TICK]
+
+    # Write place, name and description tags
     write_tag(kmlf, __place, indent)
     write_tag(kmlf, __name, indent, value=name)
     write_tag(kmlf, __desc, indent, value=data[F_TICK])
+
+    # Optional styleUrl tag.
     if style:
         write_tag(kmlf, __styleurl, indent, value=style)
+
+    # Write point, coordinates, altitude mode and extrude mode tags.
     write_tag(kmlf, __point, indent)
     write_tag(kmlf, __coord, indent, value=coords)
     write_tag(kmlf, __altitude, indent, value=altitude)
     write_tag(kmlf, __extrude, indent, value="1")
+
+    # Close point & place tags.
     close_tag(kmlf, __point, indent)
     close_tag(kmlf, __place, indent)
     _log_debug("wrote placemark (name='%s')" % name)
@@ -288,12 +324,24 @@ def write_style_headers(kmlf, width, color, indent):
 
 
 def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
+    """Write placemarks for each flight state change found in the CSV
+        data.
+
+        For each row of data, the F_FLY_STATE field is compared to the
+        current flight state and a placemark is written if they differ.
+
+        Aliases are supported for FS_* fly states since multiple
+        synonyms exist in the raw data (e.g. AssistedTakeoff).
+
+        The name of the placemark is "OldState:NewState". This may be
+        made configurable in a future version.
+    """
     fly_state = None
     _log_debug("starting state placemarks folder")
     write_tag(kmlf, __folder, indent)
     for data in csv_data:
         new_fly_state = data[F_FLY_STATE]
-        # Handle state aliases
+        # Convert alias to canonical name
         if new_fly_state in __fs_aliases:
             new_fly_state = __fs_aliases[new_fly_state]
         if fly_state:
@@ -303,6 +351,7 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
                 name = "%s:%s" % (fly_state, new_fly_state)
                 write_placemark(kmlf, data, None, indent,
                                 altitude=altitude, name=name)
+        # Update current fly state
         fly_state = new_fly_state
     _log_debug("ending state placemarks folder")
     close_tag(kmlf, __folder, indent)
@@ -325,6 +374,8 @@ def write_track_header(kmlf, csv_data, indent,
     close_tag(kmlf, __folder, indent)
     # Track folder
     _log_debug("starting track data folder")
+
+    # Write track tags
     write_tag(kmlf, __folder, indent)
     write_tag(kmlf, __place, indent)
     write_tag(kmlf, __name, indent, value=name if name else 'Flight Trace')
