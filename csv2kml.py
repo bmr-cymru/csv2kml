@@ -191,16 +191,18 @@ def write_tag(kmlf, tag, indent, value=None):
     oneline = has_value and (nl not in value or len(value) < remaining)
 
     if has_value:
-        if not oneline:
+        if oneline:
+            # Output on a single line with no spaces
+            value_end = ""
+            val_indent = ""
+            tag_indent = ""
+        else:
+            # Write newlines after tag and value, and indent output
             kmlf.write('\n')
             value_end = "\n"
             tag_indent = indent
             indent.indent()
             val_indent = indent
-        else:
-            value_end = ""
-            val_indent = ""
-            tag_indent = ""
 
         kmlf.write(val_indent + value + value_end)
 
