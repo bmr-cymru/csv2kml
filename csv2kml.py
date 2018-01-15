@@ -111,7 +111,8 @@ __colors = {
     'red': 'ff0000ff',
     'green': 'ff00ff00',
     'blue' : 'ffff0000',
-    'yellow': 'ff00ffff'
+    'yellow': 'ff00ffff',
+    'purple': 'ffff00ff'
 }
 
 class _indent(object):
