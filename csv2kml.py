@@ -606,7 +606,7 @@ def main(argv):
     parser.add_argument("-v", "--verbose", action="count",
                         help="Enable verbose output")
     parser.add_argument("-w", "--width", type=int, default=4,
-                        help="Track line width for track mode")
+                        help="Track line width in pixel for track mode.")
 
     args = parser.parse_args()
 
