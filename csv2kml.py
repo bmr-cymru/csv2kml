@@ -412,6 +412,25 @@ def write_coords(kmlf, data, indent):
 
 
 def make_field_map(header, name_map):
+    """Make a field map for the current CSV file by scanning column
+        headers.
+
+        The `header` argument is a string containing a row of CSV
+        data with column headers, and `name_map` is a dictionary
+        mapping csv2kml field names to CSV column headers, for e.g.
+        'F_TICK: "Tick#"'.
+
+        The CSV format header data is split at each ',', and column
+        names are canonicalised to remove '[description#]' tags
+        present in some model data.
+
+        For each name in `name_map`, the headers list is searched
+        for a matching column, and if found, the index of the column
+        is taken as the mapping for that field and stored in a new
+        `field_map` dictionary.
+
+        On success the field map is returned.
+    """
     field_map = {}
     names = name_map.keys()
     # Hack to work around models that generate extra header tags.
