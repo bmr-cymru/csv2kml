@@ -108,10 +108,11 @@ ALT_REL_GROUND = __alt_rel_ground
 __colors = {
     'red': 'ff0000ff',
     'green': 'ff00ff00',
-    'blue' : 'ffff0000',
+    'blue': 'ffff0000',
     'yellow': 'ff00ffff',
     'purple': 'ffff00ff'
 }
+
 
 class _indent(object):
     enable = True
@@ -525,7 +526,7 @@ def parse_color(color):
     if len(color) != 6 and len(color) != 8:
         raise ValueError("invalid color string length: %d" % len(color))
 
-    color_chars = map(str, range(0,9)) + ['a','b','c','d','e','f']
+    color_chars = map(str, range(0, 9)) + ['a', 'b', 'c', 'd', 'e', 'f']
     chars_valid = [c in color_chars for c in color]
     if not all(chars_valid):
         raise ValueError("invalid characters in color string: %s" % color)
@@ -575,8 +576,8 @@ def main(argv):
                         help="Use absolute altitude mode", default=None)
     parser.add_argument("-c", "--color", type=str, default="yellow",
                         help="Set track color. Available options: red, blue, "
-                             "yellow, green, purple or hex color codes. (e.g.: "
-                             "red = ff0000ff)")
+                             "yellow, green, purple or hex color codes. "
+                             "(e.g.: red = ff0000ff)")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Enable Python exception debug output")
     parser.add_argument("-f", "--field-map", type=str, default=None,
