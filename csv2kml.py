@@ -688,6 +688,16 @@ def parse_color(color):
 
 
 def csv2kml(args):
+    """ccs2kml main routine
+
+        Handle all non-debug arguments and defaults, and initialise the
+        `csvf` and `kmlf` input and output streams respectively, and
+        call `process_csv()` to parse CSV data and generate KML output.
+
+        Raises SystemExit and argument specific exceptions (e.g.
+        ValueError) on invalid argument values, and IOError or OSError
+        for system errors (permissions, path not found etc.).
+    """
     if args.field_file and not args.field_map:
         args.field_map = read_field_map_file(args.field_file)
 
@@ -725,7 +735,18 @@ def csv2kml(args):
 
 
 def main(argv):
-    parser = ArgumentParser(prog=basename(argv[0]), description="CSV to KML")
+    """main()
+
+        Parse arguments, initialise logging and call `csv2kml()` to
+        convert file data.
+
+        Exceptions in csv2kml() are caught and logged to the terminal
+        unless debugging is enabled. In this case exceptions are
+        never caught and will be caught by the python interpreter or
+        debugger.
+    """
+    parser = ArgumentParser(prog=basename(argv[0]), description="Convert DJI"
+                            " CSV files to KML")
     parser.add_argument("-a", "--absolute", action="store_true",
                         help="Use absolute altitude mode", default=None)
     parser.add_argument("-c", "--color", type=str, default="yellow",
