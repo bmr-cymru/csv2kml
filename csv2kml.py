@@ -108,9 +108,9 @@ ALT_ABSOLUTE = __alt_absolute
 ALT_REL_GROUND = __alt_rel_ground
 
 __colors = {
-    'red': 'ffff0000',
+    'red': 'ff0000ff',
     'green': 'ff00ff00',
-    'blue' : 'ff0000ff',
+    'blue' : 'ffff0000',
     'yellow': 'ff00ffff'
 }
 
