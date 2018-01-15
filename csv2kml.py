@@ -580,7 +580,9 @@ def main(argv):
     parser.add_argument("-a", "--absolute", action="store_true",
                         help="Use absolute altitude mode", default=None)
     parser.add_argument("-c", "--color", type=str, default="yellow",
-                        help="Set track color")
+                        help="Set track color. Available options: red, blue, "
+                             "yellow, green, purple or hex color codes. (e.g.: "
+                             "red = ff0000ff)")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Enable Python exception debug output")
     parser.add_argument("-f", "--field-map", type=str, default=None,
