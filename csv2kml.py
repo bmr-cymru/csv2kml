@@ -680,6 +680,7 @@ def parse_color(color):
         raise ValueError("invalid color string length: %d" % len(color))
 
     color_chars = map(str, range(0, 9)) + ['a', 'b', 'c', 'd', 'e', 'f']
+    color_chars += ['A', 'B', 'C', 'D', 'E', 'F']
     chars_valid = [c in color_chars for c in color]
     if not all(chars_valid):
         raise ValueError("invalid characters in color string: %s" % color)
