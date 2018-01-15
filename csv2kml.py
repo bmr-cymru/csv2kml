@@ -666,8 +666,12 @@ def shutdown_logging():
 
 
 def parse_color(color):
-    """Parse a color string or name and return the corresponding hexadecimal
-        color string.
+    """Parse a color string or name and return the corresponding
+        hexadecimal color string.
+
+        Raises ValueError if the length of the string is not 6 (RGB),
+        or 8 (ARGB), or if non-hexadecimal characters appear in the
+        `color` string.
     """
     if color in __colors.keys():
         color = __colors[color]
