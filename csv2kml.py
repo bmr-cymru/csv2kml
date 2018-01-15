@@ -448,6 +448,16 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
                 thresh=1000, state_marks=False, indent_kml=True,
                 track_width=4, track_color="ff00ffff", field_map=None):
     """Process one CSV file and write the results to `kmlf`.
+
+        Data is read from the input CSV file and stored in a list of
+        dictionary objects, indexed by csv2kml field names (F_TICK etc).
+        Rows of input data are skipped unless they have a valid time
+        stamp, valid coordinates, and occur after the configured sample
+        time threshold.
+
+        Flight state change placemarks are then written (if enabled) in
+        a new KML folder, followed by a folder containing the track or
+        placemark entries for the flight.
     """
     fields = None
     csv_data = []
@@ -468,12 +478,17 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     header_read = False
     # Acquire data points
     for line in csvf:
+        # Ignore blank lines, comments etc. before the header row.
         if not header_read and not line.startswith("Tick"):
             continue
+
+        # Skip header if using explicit field map
         if field_map and line.startswith("Tick"):
             _log_debug("skipping header row")
+            header_read = True
             continue
-        # replace with call to is_header_row() if multi-vendor
+        # Detect model headers to parse field mapping: replace with
+        # is_header_row() to allow multi-vendor support.
         elif line.startswith("Tick"):
             _log_debug("parsing field map from header row")
             field_map = make_field_map(line, __dji_header_map)
@@ -487,18 +502,22 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         f = line.strip().split(',')
 
         def getfield(field):
+            # Map F_FIELD_NAME -> column index -> column data
             return f[field_map[field]]
 
+        # Convert F_FLIGHT_TIME to an integer for threshold checks
         ts = int(getfield(F_FLIGHT_TIME)) if getfield(F_FLIGHT_TIME) else None
 
         # Skip row if time delta < threshold
         if not ts:
             ts_none_skip += 1
             continue
+        # Skip row if ts_delta < thresh
         elif (ts - last_ts) < thresh:
             ts_delta_skip += 1
             continue
 
+        # Update last_ts
         last_ts = ts
 
         # Build field_name -> value dictionary
@@ -531,13 +550,16 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     if state_marks:
         write_state_placemarks(kmlf, csv_data, indent, altitude=altitude)
 
+    # Write track headers
     if track:
         write_track_header(kmlf, csv_data, indent, altitude=altitude)
 
     for data in csv_data:
         if not track:
+            # Placemark mode: one mark per row
             write_placemark(kmlf, data, None, indent, altitude=altitude)
         else:
+            # Track mode: write coordinate data inside track tags.
             write_coords(kmlf, data, indent)
 
     if not track:
@@ -546,6 +568,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         _log_info("wrote track coordinate data")
 
     if track:
+        # Close track headers
         write_track_footer(kmlf, indent)
 
     write_kml_footer(kmlf, indent)
