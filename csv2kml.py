@@ -698,6 +698,10 @@ def csv2kml(args):
         ValueError) on invalid argument values, and IOError or OSError
         for system errors (permissions, path not found etc.).
     """
+    if not args.input and sys.stdin.isatty():
+        print("No input file specified")
+        raise SystemExit(1)
+
     if args.field_file and not args.field_map:
         args.field_map = read_field_map_file(args.field_file)
 
@@ -789,11 +793,6 @@ def main(argv):
         csv2kml(args)
         shutdown_logging()
         return 0
-
-    if not args.input and sys.stdin.isatty():
-        parser.print_help()
-        print("No input file specified")
-        return 1
 
     try:
         csv2kml(args)
