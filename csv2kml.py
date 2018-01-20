@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # Copyright (C) 2018 Bryn M. Reeves <bmr@errorists.org>
+# Co-Progamming and Design: Axel Seedig <axel@endeavoursky.co.uk>
 #
 # csv2kml.py - Convert DGI CSV black box data to KML
 #
@@ -49,7 +50,9 @@ __yaw = 'yaw'
 __desc = 'description'
 __point = 'Point'
 __coord = 'coordinates'
+__heading = 'heading'
 __folder = 'Folder'
+__scale = 'scale'
 __style = 'Style id="%s"'
 __styleurl = 'styleUrl'
 __linestyle = 'LineStyle'
@@ -297,11 +300,16 @@ def write_placemark(kmlf, data, style, indent,
     _log_debug("wrote placemark (name='%s')" % name)
 
 
-def write_icon_style(kmlf, icon_id, href, indent):
+def write_icon_style(kmlf, icon_id, href, indent, scale=None, heading=None):
     """Write an icon style with an image link.
     """
-    write_tag(kmlf, __style % icon_id, indent)
+    style = __style % icon_id if icon_id else __style.split(' ')[0]
+    write_tag(kmlf, style, indent)
     write_tag(kmlf, __iconstyle, indent)
+    if scale is not None:
+        write_tag(kmlf, __scale, indent, value=scale)
+    if heading is not None:
+        write_tag(kmlf, __heading, indent, value=heading)
     write_tag(kmlf, __icon, indent)
     write_tag(kmlf, __href, indent, value=href)
     close_tag(kmlf, __icon, indent)
