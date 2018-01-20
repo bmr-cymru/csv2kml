@@ -45,6 +45,7 @@ __kml = 'kml xmlns="http://earth.google.com/kml/2.0"'
 __doc = 'Document'
 __place = 'Placemark'
 __name = 'name'
+__yaw = 'yaw'
 __desc = 'description'
 __point = 'Point'
 __coord = 'coordinates'
@@ -74,11 +75,12 @@ F_GPS_LONG = "F_GPS_LONG"
 F_GPS_LAT = "F_GPS_LAT"
 F_GPS_ALT = "F_GPS_ALT"
 F_FLY_STATE = "F_FLY_STATE"
+F_YAW = "F_YAW"
 
 __fields = [
     F_TICK, F_FLIGHT_TIME, F_GPS_TS,
     F_GPS_LAT, F_GPS_LONG, F_GPS_ALT,
-    F_FLY_STATE
+    F_FLY_STATE, F_YAW
 ]
 
 #: Map csv2kml field names to DJI column headers
@@ -89,7 +91,8 @@ __dji_header_map = {
     F_GPS_LONG: "GPS:Long",
     F_GPS_LAT: "GPS:Lat",
     F_GPS_ALT: "GPS:heightMSL",
-    F_FLY_STATE: "flyCState"
+    F_FLY_STATE: "flyCState",
+    F_YAW: "Yaw"
 }
 
 #: Fly states
