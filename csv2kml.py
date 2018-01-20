@@ -740,7 +740,7 @@ def csv2kml(args):
     try:
         csvf = sys.stdin if not args.input else open(args.input, "r")
     except (IOError, OSError):
-        log_error("Could not open input file: %s" % (args.input or '-'))
+        _log_error("Could not open input file: %s" % (args.input or '-'))
         raise
 
     return process_csv(csvf, kmlf, mode=mode, altitude=alt,
