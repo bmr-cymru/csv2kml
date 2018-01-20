@@ -133,6 +133,8 @@ __colors = {
     'purple': 'ffff00ff'
 }
 
+icon_marker_0_Red = ("http://manager2.hampshire4x4response.net/"
+                     "Mapping/_SupportFiles/0_Red.png")
 
 class _indent(object):
     """Indentation context: the `_indent` class stores the current
@@ -340,6 +342,7 @@ def write_style_headers(kmlf, width, color, indent):
 
 
 def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
+    icon_marker = icon_marker_0_Red
     """Write placemarks for each flight state change found in the CSV
         data.
 
@@ -365,8 +368,9 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
                 _log_info("fly state changed from '%s' to '%s'" %
                           (fly_state, new_fly_state))
                 name = "%s:%s" % (fly_state, new_fly_state)
-                write_placemark(kmlf, data, None, indent,
-                                altitude=altitude, name=name)
+                write_placemark(kmlf, data, None, indent, altitude=altitude,
+                                icon_marker=icon_marker, name=name,
+                                heading=data[F_YAW])
         # Update current fly state
         fly_state = new_fly_state
     _log_debug("ending state placemarks folder")
