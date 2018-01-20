@@ -795,6 +795,10 @@ def main(argv):
                         help="Output placemarks instead of track")
     parser.add_argument("-s", "--state-marks", action="store_true",
                         help="Output placemarkers when fly state changes")
+    parser.add_argument("-S", "--icon-size", action="store_true",
+                        help="Size of Placemarks. 1 is Standard. 2 is "
+                        "double the size. 0.5 is half the size. "
+                        "Only applies to custom markers.")
     parser.add_argument("-t", "--threshold", type=int, default=1000,
                         help="Time difference threshold for sampling (ms)")
     parser.add_argument("-v", "--verbose", action="count",
