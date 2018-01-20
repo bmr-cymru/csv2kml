@@ -270,10 +270,13 @@ def write_kml_footer(kmlf, indent):
     _log_debug("wrote KML footers")
 
 
-def write_placemark(kmlf, data, style, indent,
-                    altitude=ALT_REL_GROUND, name=None):
+def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
+                    icon_marker=None, heading=None, name=None):
     """Write a placemark with optional style.
     """
+    if style and icon_marker:
+        raise ValueError("'style' and 'icon_marker' cannot both beset")
+
     coords = "%s,%s,%s" % (data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT])
 
     # Use the Tick# for the name unless specified
@@ -289,6 +292,8 @@ def write_placemark(kmlf, data, style, indent,
         write_tag(kmlf, __styleurl, indent, value=style)
 
     # Write point, coordinates, altitude mode and extrude mode tags.
+    else:
+        write_icon_style(kmlf, None, icon_marker, indent, heading=heading)
     write_tag(kmlf, __point, indent)
     write_tag(kmlf, __coord, indent, value=coords)
     write_tag(kmlf, __altitude, indent, value=altitude)
