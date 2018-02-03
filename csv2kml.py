@@ -407,12 +407,23 @@ def write_track_header(kmlf, csv_data, indent,
     # Start/end folder
     _log_debug("starting track placemarks folder")
     write_tag(kmlf, __folder, indent)
+
+    desc_str = "Tick#: %s\nTime Stamp: %s\nDistance: %s"
+    start_data = (csv_data[0][F_TICK], csv_data[0][F_GPS_TS],
+                   csv_data[0][F_TRAVEL_DIST])
+    end_data = (csv_data[-1][F_TICK], csv_data[-1][F_GPS_TS],
+                   csv_data[-1][F_TRAVEL_DIST])
+
     # Write start placemark
     write_placemark(kmlf, csv_data[0], " #iconPathStart", indent,
-                    altitude=altitude, name="Start")
+                    altitude=altitude, name="Start",
+                    desc=desc_str % start_data)
+
     # Write end placemark
     write_placemark(kmlf, csv_data[-1], " #iconPathEnd", indent,
-                    altitude=altitude, name="End")
+                    altitude=altitude, name="End",
+                    desc=desc_str % end_data)
+
     _log_debug("ending track placemarks folder")
     close_tag(kmlf, __folder, indent)
     # Track folder
