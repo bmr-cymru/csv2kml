@@ -356,6 +356,7 @@ def write_style_headers(kmlf, width, color, indent):
     close_tag(kmlf, __style, indent)
     write_icon_style(kmlf, "iconPathStart", icon_start, indent)
     write_icon_style(kmlf, "iconPathEnd", icon_end, indent)
+    write_icon_style(kmlf, "iconPathMark", icon_mark, indent)
     _log_debug("wrote style headers")
 
 
@@ -607,7 +608,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     for data in csv_data:
         if not track:
             # Placemark mode: one mark per row
-            write_placemark(kmlf, data, None, indent, altitude=altitude)
+            write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude)
         else:
             # Track mode: write coordinate data inside track tags.
             write_coords(kmlf, data, indent)
