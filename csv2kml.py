@@ -97,6 +97,19 @@ __dji_header_map = {
     F_FLY_STATE: "flyCState",
     F_YAW: "Yaw"
 }
+__dji_key_field = F_TICK
+
+__man_header_map = {
+    F_FLIGHT_TIME: "Tick#",
+    F_GPS_TS: "Time_Stamp",
+    F_TICK: "Tick#",
+    F_GPS_LONG: "Target_Lon",
+    F_GPS_LAT: "Target_Lat",
+    F_GPS_ALT: "Height",
+    F_FLY_STATE: "Identify",
+    F_YAW: "Bearing"
+}
+__man_key_field = F_GPS_TS
 
 #: Fly states
 FS_AUTO_LAND = "AutoLanding"
@@ -464,6 +477,13 @@ def make_field_map(header, name_map):
     return field_map
 
 
+def find_model_header_map(headers):
+    if headers.startswith(__dji_header_map[__dji_key_field]):
+        return __dji_header_map
+    elif headers.startswith(__man_header_map[__man_key_field]):
+        return __man_header_map
+
+
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
                 thresh=1000, state_marks=False, indent_kml=True,
                 track_width=4, track_color="ff00ffff", field_map=None):
@@ -490,6 +510,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     write_kml_header(kmlf, indent)
     write_style_headers(kmlf, track_width, track_color, indent)
 
+    pre_head_skip = 0
     no_coord_skip = 0
     ts_delta_skip = 0
     ts_none_skip = 0
@@ -499,7 +520,8 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     # Acquire data points
     for line in csvf:
         # Ignore blank lines, comments etc. before the header row.
-        if not header_read and not line.startswith("Tick"):
+        if not header_read and "Tick" not in line:
+            pre_head_skip +=1
             continue
 
         # Skip header if using explicit field map
@@ -509,9 +531,10 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
             continue
         # Detect model headers to parse field mapping: replace with
         # is_header_row() to allow multi-vendor support.
-        elif line.startswith("Tick"):
+        elif "Tick" in line:
             _log_debug("parsing field map from header row")
-            field_map = make_field_map(line, __dji_header_map)
+            header_map = find_model_header_map(line)
+            field_map = make_field_map(line, header_map)
             _log_debug("field map: %s" % field_map)
             header_read = True
             continue
@@ -529,7 +552,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         ts = int(getfield(F_FLIGHT_TIME)) if getfield(F_FLIGHT_TIME) else None
 
         # Skip row if time delta < threshold
-        if not ts:
+        if not ts and not getfield(F_FLIGHT_TIME):
             ts_none_skip += 1
             continue
         # Skip row if ts_delta < thresh
@@ -551,6 +574,8 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
         csv_data.append(data)
 
+    if pre_head_skip:
+        _log_debug("skipped %d rows before header" % pre_head_skip)
     if ts_none_skip:
         _log_debug("skipped %d rows with null timestamp" % ts_none_skip)
     if ts_delta_skip:
