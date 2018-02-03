@@ -133,7 +133,7 @@ __colors = {
     'purple': 'ffff00ff'
 }
 
-icon_marker_0_Red = ("http://manager2.hampshire4x4response.net/"
+icon_marker_0_Red = ("http://manager.hampshire4x4response.net/"
                      "Mapping/_SupportFiles/0_Red.png")
 
 class _indent(object):
