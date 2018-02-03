@@ -152,6 +152,9 @@ __colors = {
 icon_marker_0_Red = ("http://manager.hampshire4x4response.net/"
                      "Mapping/_SupportFiles/0_Red.png")
 
+desc_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
+            "Distance: %s\nDescription: %s")
+
 class _indent(object):
     """Indentation context: the `_indent` class stores the current
         indentation level and generates a suitable indentation string
@@ -408,21 +411,22 @@ def write_track_header(kmlf, csv_data, indent,
     _log_debug("starting track placemarks folder")
     write_tag(kmlf, __folder, indent)
 
-    desc_str = "Tick#: %s\nTime Stamp: %s\nDistance: %s"
     start_data = (csv_data[0][F_TICK], csv_data[0][F_GPS_TS],
-                   csv_data[0][F_TRAVEL_DIST])
-    end_data = (csv_data[-1][F_TICK], csv_data[-1][F_GPS_TS],
-                   csv_data[-1][F_TRAVEL_DIST])
+                   csv_data[0][F_GPS_LONG], csv_data[0][F_GPS_LAT],
+                   csv_data[0][F_TRAVEL_DIST], csv_data[0][F_FLY_STATE])
+    end_data = (csv_data[1][F_TICK], csv_data[1][F_GPS_TS],
+                   csv_data[1][F_GPS_LONG], csv_data[1][F_GPS_LAT],
+                   csv_data[1][F_TRAVEL_DIST], csv_data[1][F_FLY_STATE])
 
     # Write start placemark
     write_placemark(kmlf, csv_data[0], " #iconPathStart", indent,
                     altitude=altitude, name="Start",
-                    desc=desc_str % start_data)
+                    desc=desc_fmt % start_data)
 
     # Write end placemark
     write_placemark(kmlf, csv_data[-1], " #iconPathEnd", indent,
                     altitude=altitude, name="End",
-                    desc=desc_str % end_data)
+                    desc=desc_fmt % end_data)
 
     _log_debug("ending track placemarks folder")
     close_tag(kmlf, __folder, indent)
@@ -623,10 +627,11 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     for data in csv_data:
         if not track:
             # Placemark mode: one mark per row
-            desc_str = "Tick#: %s\nTime Stamp: %s\nDistance: %s"
-            desc_data = (data[F_TICK], data[F_GPS_TS], data[F_TRAVEL_DIST])
+            desc_data = (data[F_TICK], data[F_GPS_TS],
+                         data[F_GPS_LONG], data[F_GPS_LAT],
+                         data[F_TRAVEL_DIST], data[F_FLY_STATE])
             write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude,
-                            desc=desc_str % desc_data)
+                            desc=desc_fmt % desc_data)
         else:
             # Track mode: write coordinate data inside track tags.
             write_coords(kmlf, data, indent)
