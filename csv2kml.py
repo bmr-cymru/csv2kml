@@ -623,7 +623,10 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     for data in csv_data:
         if not track:
             # Placemark mode: one mark per row
-            write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude)
+            desc_str = "Tick#: %s\nTime Stamp: %s\nDistance: %s"
+            desc_data = (data[F_TICK], data[F_GPS_TS], data[F_TRAVEL_DIST])
+            write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude,
+                            desc=desc_str % desc_data)
         else:
             # Track mode: write coordinate data inside track tags.
             write_coords(kmlf, data, indent)
