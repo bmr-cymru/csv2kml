@@ -290,7 +290,7 @@ def write_kml_footer(kmlf, indent):
 
 
 def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
-                    icon_marker=None, heading=None, name=None):
+                    icon_marker=None, heading=None, name=None, desc=None):
     """Write a placemark with optional style.
     """
     if style and icon_marker:
@@ -298,13 +298,16 @@ def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
 
     coords = "%s,%s,%s" % (data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT])
 
+    # Use shortened description if no name given
+    name = name if name else desc[0:11] if desc else None
+
     # Use the Tick# for the name unless specified
-    name = name if name else data[F_TICK]
+    name = name if name else "Tick: " + data[F_TICK]
 
     # Write place, name and description tags
     write_tag(kmlf, __place, indent)
     write_tag(kmlf, __name, indent, value=name)
-    write_tag(kmlf, __desc, indent, value=data[F_TICK])
+    write_tag(kmlf, __desc, indent, value=desc)
 
     # Optional styleUrl tag.
     if style:
