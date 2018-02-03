@@ -301,8 +301,10 @@ def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
 
     coords = "%s,%s,%s" % (data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT])
 
+    identity = data[F_FLY_STATE]
+
     # Use shortened description if no name given
-    name = name if name else desc[0:11] if desc else None
+    name = name if name else identity[0:11] if identity else None
 
     # Use the Tick# for the name unless specified
     name = name if name else "Tick: " + data[F_TICK]
