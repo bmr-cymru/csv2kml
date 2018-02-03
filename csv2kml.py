@@ -433,7 +433,7 @@ def write_track_header(kmlf, csv_data, indent,
     write_tag(kmlf, __folder, indent)
     write_tag(kmlf, __place, indent)
     write_tag(kmlf, __name, indent, value=name if name else 'Flight Trace')
-    write_tag(kmlf, __desc, indent, value='')
+    write_tag(kmlf, __desc, indent, value='Flight Path')
     write_tag(kmlf, __styleurl, indent, value='#lineStyle1')
     write_tag(kmlf, __linestr, indent)
     write_tag(kmlf, __extrude, indent, value="0")
