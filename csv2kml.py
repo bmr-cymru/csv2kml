@@ -346,6 +346,8 @@ def write_style_headers(kmlf, width, color, indent):
     """
     icon_start = "http://www.earthpoint.us/Dots/GoogleEarth/pal2/icon13.png"
     icon_end = "http://www.earthpoint.us/Dots/GoogleEarth/shapes/target.png"
+    icon_mark = "http://maps.google.com/mapfiles/kml/paddle/D.png"
+
     write_tag(kmlf, __style % "lineStyle1", indent)
     write_tag(kmlf, __linestyle, indent)
     write_tag(kmlf, __color, indent, value=color)
