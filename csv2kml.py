@@ -396,9 +396,12 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
                 _log_info("fly state changed from '%s' to '%s'" %
                           (fly_state, new_fly_state))
                 name = "%s:%s" % (fly_state, new_fly_state)
+                desc_data = (data[F_TICK], data[F_GPS_TS],
+                             data[F_GPS_LONG], data[F_GPS_LAT],
+                             data[F_TRAVEL_DIST], data[F_FLY_STATE])
                 write_placemark(kmlf, data, None, indent, altitude=altitude,
                                 icon_marker=icon_marker, name=name,
-                                heading=data[F_YAW])
+                                heading=data[F_YAW], desc=desc_fmt % desc_data)
         # Update current fly state
         fly_state = new_fly_state
     _log_debug("ending state placemarks folder")
