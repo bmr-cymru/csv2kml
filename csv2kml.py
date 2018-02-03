@@ -244,11 +244,12 @@ def write_tag(kmlf, tag, indent, value=None):
             # Write newlines after tag and value, and indent output
             kmlf.write('\n')
             value_end = "\n"
-            tag_indent = indent
+            tag_indent = indent.indstr
             indent.indent()
-            val_indent = indent
+            val_indent = indent.indstr
 
-        kmlf.write(val_indent + value + value_end)
+        for val_line in value.splitlines():
+            kmlf.write(val_indent + val_line + value_end)
 
         if not oneline:
             indent.undent()
