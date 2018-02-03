@@ -79,11 +79,12 @@ F_GPS_LAT = "F_GPS_LAT"
 F_GPS_ALT = "F_GPS_ALT"
 F_FLY_STATE = "F_FLY_STATE"
 F_YAW = "F_YAW"
+F_TRAVEL_DIST = "F_TRAVEL_DIST"
 
 __fields = [
     F_TICK, F_FLIGHT_TIME, F_GPS_TS,
     F_GPS_LAT, F_GPS_LONG, F_GPS_ALT,
-    F_FLY_STATE, F_YAW
+    F_FLY_STATE, F_YAW, F_TRAVEL_DIST
 ]
 
 #: Map csv2kml field names to DJI column headers
@@ -95,7 +96,8 @@ __dji_header_map = {
     F_GPS_LAT: "GPS:Lat",
     F_GPS_ALT: "GPS:heightMSL",
     F_FLY_STATE: "flyCState",
-    F_YAW: "Yaw"
+    F_YAW: "Yaw",
+    F_TRAVEL_DIST: "distanceTravelled"
 }
 __dji_key_field = F_TICK
 
@@ -107,7 +109,8 @@ __man_header_map = {
     F_GPS_LAT: "Target_Lat",
     F_GPS_ALT: "Height",
     F_FLY_STATE: "Identify",
-    F_YAW: "Bearing"
+    F_YAW: "Bearing",
+    F_TRAVEL_DIST: "Distance"
 }
 __man_key_field = F_GPS_TS
 
