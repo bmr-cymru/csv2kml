@@ -149,8 +149,7 @@ __colors = {
     'purple': 'ffff00ff'
 }
 
-icon_marker_0_Red = ("http://manager.hampshire4x4response.net/"
-                     "Mapping/_SupportFiles/0_Red.png")
+icon_marker_0_Red = ("http://maps.google.com/mapfiles/kml/paddle/blu-blank.png")
 
 desc_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
             "Distance: %s\nDescription: %s")
