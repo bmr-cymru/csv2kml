@@ -398,7 +398,8 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
                 name = "%s:%s" % (fly_state, new_fly_state)
                 desc_data = (data[F_TICK], data[F_GPS_TS],
                              data[F_GPS_LONG], data[F_GPS_LAT],
-                             data[F_TRAVEL_DIST], data[F_FLY_STATE])
+                             str(round(float(data[F_TRAVEL_DIST]),2)),
+                             data[F_FLY_STATE])
                 write_placemark(kmlf, data, None, indent, altitude=altitude,
                                 icon_marker=icon_marker, name=name,
                                 heading=data[F_YAW], desc=desc_fmt % desc_data)
@@ -418,10 +419,12 @@ def write_track_header(kmlf, csv_data, indent,
 
     start_data = (csv_data[0][F_TICK], csv_data[0][F_GPS_TS],
                    csv_data[0][F_GPS_LONG], csv_data[0][F_GPS_LAT],
-                   csv_data[0][F_TRAVEL_DIST], csv_data[0][F_FLY_STATE])
+                   str(round(float(csv_data[0][F_TRAVEL_DIST]),2)),
+                   csv_data[0][F_FLY_STATE])
     end_data = (csv_data[1][F_TICK], csv_data[1][F_GPS_TS],
                    csv_data[1][F_GPS_LONG], csv_data[1][F_GPS_LAT],
-                   csv_data[1][F_TRAVEL_DIST], csv_data[1][F_FLY_STATE])
+                   str(round(float(csv_data[1][F_TRAVEL_DIST]),2)),
+                   csv_data[1][F_FLY_STATE])
 
     # Write start placemark
     write_placemark(kmlf, csv_data[0], " #iconPathStart", indent,
@@ -634,7 +637,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
             # Placemark mode: one mark per row
             desc_data = (data[F_TICK], data[F_GPS_TS],
                          data[F_GPS_LONG], data[F_GPS_LAT],
-                         data[F_TRAVEL_DIST], data[F_FLY_STATE])
+                         str(round(float(data[F_TRAVEL_DIST]),2)), data[F_FLY_STATE])
             write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude,
                             desc=desc_fmt % desc_data)
         else:
