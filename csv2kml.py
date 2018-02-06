@@ -152,7 +152,7 @@ __colors = {
 icon_marker_0_Red = ("http://maps.google.com/mapfiles/kml/paddle/blu-blank.png")
 
 desc_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
-            "Distance: %s\nDescription: %s")
+            "Distance: %sm\nAltitude: %sm\nDescription: %s")
 
 class _indent(object):
     """Indentation context: the `_indent` class stores the current
@@ -398,7 +398,7 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
                 desc_data = (data[F_TICK], data[F_GPS_TS],
                              data[F_GPS_LONG], data[F_GPS_LAT],
                              str(round(float(data[F_TRAVEL_DIST]),2)),
-                             data[F_FLY_STATE])
+                             data[F_GPS_ALT], data[F_FLY_STATE])
                 write_placemark(kmlf, data, None, indent, altitude=altitude,
                                 icon_marker=icon_marker, name=name,
                                 heading=data[F_YAW], desc=desc_fmt % desc_data)
@@ -419,10 +419,12 @@ def write_track_header(kmlf, csv_data, indent,
     start_data = (csv_data[0][F_TICK], csv_data[0][F_GPS_TS],
                    csv_data[0][F_GPS_LONG], csv_data[0][F_GPS_LAT],
                    str(round(float(csv_data[0][F_TRAVEL_DIST]),2)),
+                   str(round(float(csv_data[0][F_GPS_ALT]),2)),
                    csv_data[0][F_FLY_STATE])
     end_data = (csv_data[1][F_TICK], csv_data[1][F_GPS_TS],
                    csv_data[-1][F_GPS_LONG], csv_data[-1][F_GPS_LAT],
                    str(round(float(csv_data[-1][F_TRAVEL_DIST]),2)),
+                   str(round(float(csv_data[-1][F_GPS_ALT]),2)),
                    csv_data[-1][F_FLY_STATE])
 
     # Write start placemark
