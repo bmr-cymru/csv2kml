@@ -3,7 +3,7 @@
 # Copyright (C) 2018 Bryn M. Reeves <bmr@errorists.org>
 # Co-Progamming and Design: Axel Seedig <axel@endeavoursky.co.uk>
 #
-# csv2kml.py - Convert DJI CSV black box data to KML
+# csv2kml.py - Convert DGI CSV black box data to KML
 #
 # This file is part of the csv2kml project.
 #
@@ -66,13 +66,9 @@ __color = 'color'
 __width = 'width'
 __tessellate = 'tessellate'
 
-# Altitude mode in Google Earth
+# Altitude mode
 __alt_rel_ground = 'relativeToGround'
 __alt_absolute = 'absolute'
-
-# Relative Altitude instead of GPS Altitude
-__alt_relative = 'rela_alt'
-__alt_gps_data = 'gps_alt'
 
 #: Field constants for raw CSV columns
 F_TICK = "F_TICK"
@@ -81,16 +77,18 @@ F_GPS_TS = "F_GPS_TS"
 F_GPS_LONG = "F_GPS_LONG"
 F_GPS_LAT = "F_GPS_LAT"
 F_GPS_ALT = "F_GPS_ALT"
-F_RELA_ALT = "F_RELA_ALT"
 F_FLY_STATE = "F_FLY_STATE"
 F_YAW = "F_YAW"
 F_TRAVEL_DIST = "F_TRAVEL_DIST"
+F_BASE_LONG = "F_BASE_LONG"
+F_BASE_LAT = "F_BASE_LAT"
+F_BASE_ALT = "F_BASE_ALT"
 
 __fields = [
     F_TICK, F_FLIGHT_TIME, F_GPS_TS,
     F_GPS_LAT, F_GPS_LONG, F_GPS_ALT,
-    F_RELA_ALT, F_FLY_STATE, F_YAW,
-    F_TRAVEL_DIST
+    F_FLY_STATE, F_YAW, F_TRAVEL_DIST,
+    F_BASE_LONG, F_BASE_LAT, F_BASE_ALT
 ]
 
 #: Map csv2kml field names to DJI column headers
@@ -101,10 +99,12 @@ __dji_header_map = {
     F_GPS_LONG: "GPS:Long",
     F_GPS_LAT: "GPS:Lat",
     F_GPS_ALT: "GPS:heightMSL",
-    F_RELA_ALT: "relativeHeight",
     F_FLY_STATE: "flyCState",
     F_YAW: "Yaw",
-    F_TRAVEL_DIST: "distanceTravelled"
+    F_TRAVEL_DIST: "distanceTravelled",
+    F_BASE_LONG: None,
+    F_BASE_LAT: None,
+    F_BASE_ALT: None
 }
 __dji_key_field = F_TICK
 
@@ -115,10 +115,13 @@ __man_header_map = {
     F_GPS_LONG: "Target_Lon",
     F_GPS_LAT: "Target_Lat",
     F_GPS_ALT: "Height",
-    F_RELA_ALT: "Height",
     F_FLY_STATE: "Identify",
     F_YAW: "Bearing",
-    F_TRAVEL_DIST: "Distance"
+    F_TRAVEL_DIST: "Distance",
+    F_BASE_LONG: "Base_Lon",
+    F_BASE_LAT: "Base_Lat",
+    F_BASE_ALT: "Base_Alt"
+
 }
 __man_key_field = F_GPS_TS
 
@@ -142,15 +145,13 @@ __fs_aliases = {
 MODE_TRACK = "track"
 #: Placemark mode: create a placemark for each CSV data point.
 MODE_PLACE = "placemark"
+#: Line mode: create line placemarks from each point to a base point.
+MODE_LINE = "line"
 
 #: Absolute altitude mode: values relative to sea level.
 ALT_ABSOLUTE = __alt_absolute
 #: Ground relative altitidue mode.
 ALT_REL_GROUND = __alt_rel_ground
-#: GPS altitude data from the CSV data
-ALT_GPS_DATA = __alt_gps_data
-#: Relative altitude from the CSV data
-ALT_RELA_DATA = __alt_relative
 
 #: Map color aliases to hex ARGB color values
 __colors = {
@@ -161,11 +162,11 @@ __colors = {
     'purple': 'ffff00ff'
 }
 
-icon_marker_0_Red = ("http://maps.google.com/mapfiles/kml/paddle/blu-blank.png")
+icon_marker_0_Red = ("http://manager.hampshire4x4response.net/"
+                     "Mapping/_SupportFiles/0_Red.png")
 
 desc_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
-            "Distance: %sm\nRelative Altitude: %sm\n"
-            "GPS Altitude: %sm\nDescription: %s")
+            "Distance: %s\nDescription: %s")
 
 class _indent(object):
     """Indentation context: the `_indent` class stores the current
@@ -305,17 +306,14 @@ def write_kml_footer(kmlf, indent):
 
 
 def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
-                    altdatamode=ALT_GPS_DATA, icon_marker=None, heading=None,
-                    name=None, desc=None):
+                    icon_marker=None, heading=None, name=None, desc=None,
+                    line=None):
     """Write a placemark with optional style.
     """
     if style and icon_marker:
         raise ValueError("'style' and 'icon_marker' cannot both beset")
 
-    if altdatamode == "gps_alt":
-        coords = "%s,%s,%s" % (data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT])
-    else:
-        coords = "%s,%s,%s" % (data[F_GPS_LONG], data[F_GPS_LAT], data[F_RELA_ALT])
+    coords = "%s,%s,%s" % (data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT])
 
     identity = data[F_FLY_STATE]
 
@@ -337,13 +335,35 @@ def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
     # Write point, coordinates, altitude mode and extrude mode tags.
     else:
         write_icon_style(kmlf, None, icon_marker, indent, heading=heading)
-    write_tag(kmlf, __point, indent)
-    write_tag(kmlf, __coord, indent, value=coords)
-    write_tag(kmlf, __altitude, indent, value=altitude)
-    write_tag(kmlf, __extrude, indent, value="1")
 
-    # Close point & place tags.
-    close_tag(kmlf, __point, indent)
+    # Point mode is default
+    if not line:
+        write_tag(kmlf, __point, indent)
+        write_tag(kmlf, __coord, indent, value=coords)
+        write_tag(kmlf, __altitude, indent, value=altitude)
+        write_tag(kmlf, __extrude, indent, value="1")
+
+        # Close point tag
+        close_tag(kmlf, __point, indent)
+    # Line mark
+    else:
+        write_tag(kmlf, __linestr, indent)
+        write_tag(kmlf, __extrude, indent, value="0")
+        write_tag(kmlf, __tessellate, indent, value="0")
+        write_tag(kmlf, __altitude, indent, value=altitude)
+        write_tag(kmlf, __coord, indent)
+
+        end_data = {
+            F_GPS_LONG: data[F_BASE_LONG],
+            F_GPS_LAT: data[F_BASE_LAT],
+            F_GPS_ALT: data[F_BASE_ALT]
+        }
+
+        write_coords(kmlf, data, indent)
+        write_coords(kmlf, end_data, indent)
+        close_tag(kmlf, __coord, indent)
+        close_tag(kmlf, __linestr, indent)
+
     close_tag(kmlf, __place, indent)
     _log_debug("wrote placemark (name='%s')" % name)
 
@@ -385,8 +405,7 @@ def write_style_headers(kmlf, width, color, indent):
     _log_debug("wrote style headers")
 
 
-def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND,
-                           altdatamode=ALT_GPS_DATA):
+def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
     icon_marker = icon_marker_0_Red
     """Write placemarks for each flight state change found in the CSV
         data.
@@ -415,11 +434,9 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND,
                 name = "%s:%s" % (fly_state, new_fly_state)
                 desc_data = (data[F_TICK], data[F_GPS_TS],
                              data[F_GPS_LONG], data[F_GPS_LAT],
-                             str(round(float(data[F_TRAVEL_DIST]),2)),
-                             data[F_RELA_ALT], data[F_GPS_ALT],
-                             data[F_FLY_STATE])
+                             data[F_TRAVEL_DIST], data[F_FLY_STATE])
                 write_placemark(kmlf, data, None, indent, altitude=altitude,
-                                altdatamode=altdatamode, icon_marker=icon_marker, name=name,
+                                icon_marker=icon_marker, name=name,
                                 heading=data[F_YAW], desc=desc_fmt % desc_data)
         # Update current fly state
         fly_state = new_fly_state
@@ -428,8 +445,7 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND,
 
 
 def write_track_header(kmlf, csv_data, indent,
-                       altitude=ALT_REL_GROUND,
-                       altdatamode = ALT_GPS_DATA, name=None):
+                       altitude=ALT_REL_GROUND, name=None):
     """Write a track header with a pair of start/end placemarks.
     """
     # Start/end folder
@@ -438,17 +454,10 @@ def write_track_header(kmlf, csv_data, indent,
 
     start_data = (csv_data[0][F_TICK], csv_data[0][F_GPS_TS],
                    csv_data[0][F_GPS_LONG], csv_data[0][F_GPS_LAT],
-                   str(round(float(csv_data[0][F_TRAVEL_DIST]),2)),
-                   str(round(float(csv_data[0][F_RELA_ALT]),2)),
-                   str(round(float(csv_data[0][F_GPS_ALT]),2)),
-                   csv_data[0][F_FLY_STATE])
-                   
+                   csv_data[0][F_TRAVEL_DIST], csv_data[0][F_FLY_STATE])
     end_data = (csv_data[1][F_TICK], csv_data[1][F_GPS_TS],
-                   csv_data[-1][F_GPS_LONG], csv_data[-1][F_GPS_LAT],
-                   str(round(float(csv_data[-1][F_TRAVEL_DIST]),2)),
-                   str(round(float(csv_data[-1][F_RELA_ALT]),2)),
-                   str(round(float(csv_data[-1][F_GPS_ALT]),2)),
-                   csv_data[-1][F_FLY_STATE])
+                   csv_data[1][F_GPS_LONG], csv_data[1][F_GPS_LAT],
+                   csv_data[1][F_TRAVEL_DIST], csv_data[1][F_FLY_STATE])
 
     # Write start placemark
     write_placemark(kmlf, csv_data[0], " #iconPathStart", indent,
@@ -490,22 +499,14 @@ def write_track_footer(kmlf, indent):
     _log_debug("wrote track footer")
 
 
-def write_coords(kmlf, data, indent,
-                 altdatamode=ALT_GPS_DATA):
+def write_coords(kmlf, data, indent):
     """Write one line of coordinate data in a LinsString object.
     """
-    if altdatamode == "rela_alt":
-        coord_data = (
-            data[F_GPS_LONG],
-            data[F_GPS_LAT],
-            data[F_RELA_ALT]
-                      )
-    else:
-        coord_data = (
-            data[F_GPS_LONG],
-            data[F_GPS_LAT],
-            data[F_GPS_ALT]
-                     )
+    coord_data = (
+        data[F_GPS_LONG],
+        data[F_GPS_LAT],
+        data[F_GPS_ALT]
+    )
     kmlf.write(indent.indstr + "%s,%s,%s\n" % coord_data)
 
 
@@ -534,10 +535,13 @@ def make_field_map(header, name_map):
     # Hack to work around models that generate extra header tags.
     headers = [h.split('[')[0] for h in header.strip().split(',')]
     for name in names:
-        idx = headers.index(name_map[name])
-        _log_debug("mapping field %s to index %d ('%s')" %
-                   (name, idx, headers[idx]))
-        field_map[name] = idx
+        if name_map[name] in headers:
+            idx = headers.index(name_map[name])
+            _log_debug("mapping field %s to index %d ('%s')" %
+                       (name, idx, headers[idx]))
+            field_map[name] = idx
+        else:
+            field_map[name] = -1
     _log_debug("built field map with %d fields" % len(names))
     return field_map
 
@@ -550,9 +554,8 @@ def find_model_header_map(headers):
 
 
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
-                altdatamode = ALT_GPS_DATA, thresh=1000, state_marks=False,
-                indent_kml=True, track_width=4, track_color="ff00ffff",
-                field_map=None):
+                thresh=1000, state_marks=False, indent_kml=True,
+                track_width=4, track_color="ff00ffff", field_map=None):
     """Process one CSV file and write the results to `kmlf`.
 
         Data is read from the input CSV file and stored in a list of
@@ -611,6 +614,9 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         f = line.strip().split(',')
 
         def getfield(field):
+            # Handle optional fields
+            if field_map[field] == -1:
+                return None
             # Map F_FIELD_NAME -> column index -> column data
             return f[field_map[field]]
 
@@ -633,18 +639,12 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         data = {f: getfield(f) for f in __fields}
 
         # Skip row if coordinate data is null or zero
-        if altdatamode == "gps_alt":
-            coords = [data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT]]
-            if not any(coords) or all([d == "0.0" for d in coords]):
-                no_coord_skip += 1
-                continue
-            csv_data.append(data)
-        else:
-            coords = [data[F_GPS_LONG], data[F_GPS_LAT], data[F_RELA_ALT]]
-            if not any(coords) or all([d == "0.0" for d in coords]):
-                no_coord_skip += 1
-                continue
-            csv_data.append(data)
+        coords = [data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT]]
+        if not any(coords) or all([d == "0.0" for d in coords]):
+            no_coord_skip += 1
+            continue
+
+        csv_data.append(data)
 
     if pre_head_skip:
         _log_debug("skipped %d rows before header" % pre_head_skip)
@@ -665,30 +665,32 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
 
     # Write fly state change placemarks
     if state_marks:
-        write_state_placemarks(kmlf, csv_data, indent, altitude=altitude, altdatamode=altdatamode)
+        write_state_placemarks(kmlf, csv_data, indent, altitude=altitude)
 
     # Write track headers
     if track:
-        write_track_header(kmlf, csv_data, indent, altitude=altitude, altdatamode=altdatamode)
+        write_track_header(kmlf, csv_data, indent, altitude=altitude)
 
     for data in csv_data:
-        if not track:
+        desc_data = (data[F_TICK], data[F_GPS_TS],
+                     data[F_GPS_LONG], data[F_GPS_LAT],
+                     data[F_TRAVEL_DIST], data[F_FLY_STATE])
+        desc=desc_fmt % desc_data
+        if mode == MODE_PLACE:
             # Placemark mode: one mark per row
-            if altdatamode == "gps_alt":
-                desc_data = (data[F_TICK], data[F_GPS_TS],
-                             data[F_GPS_LONG], data[F_GPS_LAT],
-                             str(round(float(data[F_GPS_ALT]),2)),
-                             str(round(float(data[F_TRAVEL_DIST]),2)), data[F_FLY_STATE])
-                write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude,
-                                desc=desc_fmt % desc_data)
-            else:
-                desc_data = (data[F_TICK], data[F_GPS_TS],
-                             data[F_GPS_LONG], data[F_GPS_LAT],
-                             str(round(float(data[F_RELA_ALT]),2)),
-                             str(round(float(data[F_TRAVEL_DIST]),2)), data[F_FLY_STATE])
-                write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude,
-                                desc=desc_fmt % desc_data)
-
+            write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude,
+                            desc=desc)
+        elif mode == MODE_LINE:
+            # Line mode
+            line_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
+                        "Base Location: %s / %s\nDistance: %s\nDescription: %s")
+            desc_data = (data[F_TICK], data[F_GPS_TS],
+                         data[F_GPS_LONG], data[F_GPS_LAT],
+                         data[F_BASE_LONG], data[F_BASE_LAT],
+                         data[F_TRAVEL_DIST], data[F_FLY_STATE])
+            desc=line_fmt % desc_data
+            write_placemark(kmlf, data, " #lineStyle1", indent, altitude=altitude,
+                            desc=desc, line=True)
         else:
             # Track mode: write coordinate data inside track tags.
             write_coords(kmlf, data, indent)
@@ -724,6 +726,10 @@ def parse_field_map(map_string):
         (key, value) = key_value.split(":")
         if key not in __fields:
             raise ValueError("Unknown field name: %s" % key)
+        if value == "None":
+            # Field not supported by this data model
+            field_map[key] = -1
+            continue
         try:
             int_value = int(value)
         except:
@@ -838,10 +844,14 @@ def csv2kml(args):
 
     field_map = parse_field_map(args.field_map) if args.field_map else None
 
-    mode = MODE_PLACE if args.placemarks else MODE_TRACK
-    alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
-    alt_data_mode = ALT_RELA_DATA if args.relative else ALT_GPS_DATA
+    if args.placemarks:
+        mode = MODE_PLACE
+    elif args.line:
+        mode = MODE_LINE
+    else:
+        mode =MODE_TRACK
 
+    alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
 
     if not args.output and args.input:
         args.output = args.input[0:-4] + ".kml"
@@ -865,10 +875,7 @@ def csv2kml(args):
         _log_error("Could not open input file: %s" % (args.input or '-'))
         raise
 
-    _log_debug("ALT_MODE (option -r): %s" % alt_data_mode)
-    _log_debug("ALTITUDE (option -a): %s" % alt)
-    
-    return process_csv(csvf, kmlf, mode=mode, altitude=alt, altdatamode=alt_data_mode,
+    return process_csv(csvf, kmlf, mode=mode, altitude=alt,
                        thresh=args.threshold, state_marks=args.state_marks,
                        indent_kml=indent, track_width=args.width,
                        track_color=track_color, field_map=field_map)
@@ -903,14 +910,14 @@ def main(argv):
                         help="Input file path", default=None)
     parser.add_argument("-l", "--log-file", metavar="LOG", default=None,
                         help="File to write log to instead of terminal")
+    parser.add_argument("-L", "--line", "--line-mode", action="store_true",
+                        help="Generate base lines in output KML")
     parser.add_argument("-n", "--no-indent", action="store_true",
                         help="Do not indent KML output")
     parser.add_argument("-o", "--output", metavar="OUTPUT", type=str,
                         help="Output file path", default=None)
     parser.add_argument("-p", "--placemarks", action="store_true",
                         help="Output placemarks instead of track")
-    parser.add_argument("-r", "--relative", action="store_true",
-                        help="Relative Alt instead of GPS Alt")
     parser.add_argument("-s", "--state-marks", action="store_true",
                         help="Output placemarkers when fly state changes")
     parser.add_argument("-t", "--threshold", type=int, default=1000,
