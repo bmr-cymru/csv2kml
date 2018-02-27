@@ -536,7 +536,11 @@ def make_field_map(header, name_map):
     if '[' in header:
         headers = [h.split('[')[0] for h in header.strip().split(',')]
     elif ':(' in header:
-        headers = [h[:h.index(":(")] for h in header.strip().split(',')]
+        headers = []
+        for h in header.strip().split(','):
+            if ":(" in h:
+                h = h[:h.index(":(")]
+            headers.append(h)
     else:
         headers = header.strip().split(',')
 
