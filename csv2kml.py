@@ -675,7 +675,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         desc_data = (data[F_TICK], data[F_GPS_TS],
                      data[F_GPS_LONG], data[F_GPS_LAT],
                      data[F_TRAVEL_DIST], data[F_FLY_STATE])
-        desc=desc_fmt % desc_data
+        desc = desc_fmt % desc_data
         if mode == MODE_PLACE:
             # Placemark mode: one mark per row
             write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude,
@@ -688,7 +688,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
                          data[F_GPS_LONG], data[F_GPS_LAT],
                          data[F_BASE_LONG], data[F_BASE_LAT],
                          data[F_TRAVEL_DIST], data[F_FLY_STATE])
-            desc=line_fmt % desc_data
+            desc = line_fmt % desc_data
             write_placemark(kmlf, data, " #lineStyle1", indent, altitude=altitude,
                             desc=desc, line=True)
         else:
