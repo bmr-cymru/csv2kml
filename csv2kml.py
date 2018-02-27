@@ -554,7 +554,7 @@ def find_model_header_map(headers):
 
 
 def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
-                thresh=1000, state_marks=False, indent_kml=True,
+                thresh=1000000, state_marks=False, indent_kml=True,
                 track_width=4, track_color="ff00ffff", field_map=None):
     """Process one CSV file and write the results to `kmlf`.
 
@@ -620,11 +620,11 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
             # Map F_FIELD_NAME -> column index -> column data
             return f[field_map[field]]
 
-        # Convert F_FLIGHT_TIME to an integer for threshold checks
-        ts = int(getfield(F_FLIGHT_TIME)) if getfield(F_FLIGHT_TIME) else None
+        # Convert F_TICK to an integer for threshold checks
+        ts = int(getfield(F_TICK)) if getfield(F_TICK) else None
 
         # Skip row if time delta < threshold
-        if not ts and not getfield(F_FLIGHT_TIME):
+        if not ts and not getfield(F_TICK):
             ts_none_skip += 1
             continue
         # Skip row if ts_delta < thresh
@@ -920,7 +920,7 @@ def main(argv):
                         help="Output placemarks instead of track")
     parser.add_argument("-s", "--state-marks", action="store_true",
                         help="Output placemarkers when fly state changes")
-    parser.add_argument("-t", "--threshold", type=int, default=1000,
+    parser.add_argument("-t", "--threshold", type=int, default=1000000,
                         help="Time difference threshold for sampling (ms)")
     parser.add_argument("-v", "--verbose", action="count",
                         help="Enable verbose output")
