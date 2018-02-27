@@ -532,8 +532,12 @@ def make_field_map(header, name_map):
     """
     field_map = {}
     names = name_map.keys()
-    # Hack to work around models that generate extra header tags.
-    headers = [h.split('[')[0] for h in header.strip().split(',')]
+    # Hacks to work around models that generate extra header tags.
+    if '[' in header:
+        headers = [h.split('[')[0] for h in header.strip().split(',')]
+    if '(' in header:
+        headers = [h.split('(')[0] for h in header.strip().split(',')]
+
     for name in names:
         if name_map[name] in headers:
             idx = headers.index(name_map[name])
