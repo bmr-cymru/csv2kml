@@ -532,17 +532,18 @@ def make_field_map(header, name_map):
     """
     field_map = {}
     names = name_map.keys()
-    # Hacks to work around models that generate extra header tags.
-    if '[' in header:
-        headers = [h.split('[')[0] for h in header.strip().split(',')]
-    elif ':(' in header:
-        headers = []
-        for h in header.strip().split(','):
-            if ":(" in h:
-                h = h[:h.index(":(")]
-            headers.append(h)
-    else:
-        headers = header.strip().split(',')
+    headers = header.strip().split(',')
+
+    def canonicalise_header(name):
+        """Canonicalise CSV column headers to remove variation such
+            as [tag] descriptions, '(1)' suffix and redundant ':'.
+        """
+        name = name.split('[')[0]
+        name = name.rstrip('(1)')
+        name = name.rstrip(':')
+        return name
+
+    headers = [canonicalise_header(h) for h in headers]
 
     for name in names:
         if name_map[name] in headers:
