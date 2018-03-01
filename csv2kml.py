@@ -612,6 +612,8 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         # Detect model headers to parse field mapping: replace with
         # is_header_row() to allow multi-vendor support.
         elif "Tick" in line:
+            utf_bom = '\xef\xbb\xbf'
+            line = line.lstrip(utf_bom)
             _log_debug("parsing field map from header row")
             header_map = find_model_header_map(line)
             field_map = make_field_map(line, header_map)
