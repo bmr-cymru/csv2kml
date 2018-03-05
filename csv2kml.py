@@ -159,7 +159,8 @@ __colors = {
     'green': 'ff00ff00',
     'blue': 'ffff0000',
     'yellow': 'ff00ffff',
-    'purple': 'ffff00ff'
+    'purple': 'ffff00ff',
+    'lightblue': 'fff0aa14'
 }
 
 icon_marker_0_Red = ("http://manager.hampshire4x4response.net/"
@@ -911,7 +912,7 @@ def main(argv):
                         help="Use absolute altitude mode", default=None)
     parser.add_argument("-c", "--color", type=str, default="yellow",
                         help="Set track color. Available options: red, blue, "
-                             "yellow, green, purple or hex color codes. "
+                             "lightblue, yellow, green, purple or hex color codes. "
                              "(e.g.: red = ff0000ff)")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Enable Python exception debug output")
