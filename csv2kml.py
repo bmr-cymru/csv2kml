@@ -65,6 +65,7 @@ __href = 'href'
 __color = 'color'
 __width = 'width'
 __tessellate = 'tessellate'
+__polystyle = "PolyStyle"
 
 # Altitude mode
 __alt_rel_ground = 'relativeToGround'
@@ -372,11 +373,9 @@ def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
     _log_debug("wrote placemark (name='%s')" % name)
 
 
-def write_icon_style(kmlf, icon_id, href, indent, scale=None, heading=None):
+def write_icon_style(kmlf, href, indent, scale=None, heading=None):
     """Write an icon style with an image link.
     """
-    style = __style % icon_id if icon_id else __style.split(' ')[0]
-    write_tag(kmlf, style, indent)
     write_tag(kmlf, __iconstyle, indent)
     if scale is not None:
         write_tag(kmlf, __scale, indent, value=scale)
@@ -386,26 +385,67 @@ def write_icon_style(kmlf, icon_id, href, indent, scale=None, heading=None):
     write_tag(kmlf, __href, indent, value=href)
     close_tag(kmlf, __icon, indent)
     close_tag(kmlf, __iconstyle, indent)
-    close_tag(kmlf, __style, indent)
-    _log_debug("wrote icon style (id='%s')" % icon_id)
+    _log_debug("wrote icon style (href='%s')" % href)
 
 
-def write_style_headers(kmlf, width, color, indent):
-    """Write out line and icon style headers.
+__yellow = __colors['yellow']
+__green = __colors['green']
+
+
+def write_line_style(kmlf, indent, color=__yellow, width=4):
+    """Write out a named line style with optional color and width.
     """
-    icon_start = "http://www.earthpoint.us/Dots/GoogleEarth/pal2/icon13.png"
-    icon_end = "http://www.earthpoint.us/Dots/GoogleEarth/shapes/target.png"
-    icon_mark = "http://maps.google.com/mapfiles/kml/paddle/D.png"
-
-    write_tag(kmlf, __style % "lineStyle1", indent)
     write_tag(kmlf, __linestyle, indent)
     write_tag(kmlf, __color, indent, value=color)
     write_tag(kmlf, __width, indent, value=str(width))
     close_tag(kmlf, __linestyle, indent)
+
+
+def write_poly_style(kmlf, indent, color=__green):
+    write_tag(kmlf, __polystyle, indent)
+    write_tag(kmlf, __color, indent, value=color)
+    close_tag(kmlf, __polystyle, indent)
+
+
+def write_style(kmlf, style, indent, line_color=None, poly_color=None,
+                line_width=None, icon_style=None):
+    """Write a named icon style with optional line and polygon colors,
+        and an optional list of accompanying icon style tuples.
+    """
+    style = __style % style if style else __style.split(' ')[0]
+    write_tag(kmlf, style, indent)
+
+    if line_color:
+        line_width = line_width or "4"
+        write_line_style(kmlf, indent, color=line_color, width=line_width)
+    if poly_color:
+        write_poly_style(kmlf, indent, color=poly_color)
+
+    if icon_style:
+        (href, scale, heading) = icon_style
+        write_icon_style(kmlf, href, indent, scale=scale, heading=heading)
+
     close_tag(kmlf, __style, indent)
-    write_icon_style(kmlf, "iconPathStart", icon_start, indent)
-    write_icon_style(kmlf, "iconPathEnd", icon_end, indent)
-    write_icon_style(kmlf, "iconPathMark", icon_mark, indent)
+
+def write_style_headers(kmlf, width, color, indent):
+    """Write out line and icon style headers.
+    """
+    href_start = "http://www.earthpoint.us/Dots/GoogleEarth/pal2/icon13.png"
+    href_end = "http://www.earthpoint.us/Dots/GoogleEarth/shapes/target.png"
+    href_mark = "http://maps.google.com/mapfiles/kml/paddle/D.png"
+
+    icon_start = (href_start, None, None)
+    icon_end = (href_end, None, None)
+    icon_mark = (href_mark, None, None)
+
+    write_style(kmlf, "lineStyle1", indent, line_color=__yellow, line_width="4")
+    write_style(kmlf, "iconPathStart", indent, icon_style=icon_start)
+    write_style(kmlf, "iconPathEnd", indent, icon_style=icon_end)
+    write_style(kmlf, "iconPathMark", indent, icon_style=icon_mark)
+
+    write_style(kmlf, "polyStyle1", indent, line_color=__colors['trans_grn_1'],
+                line_width="2", poly_color=__colors['trans_grn_2'])
+
     _log_debug("wrote style headers")
 
 
