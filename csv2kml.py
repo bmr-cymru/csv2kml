@@ -556,15 +556,33 @@ def write_track_footer(kmlf, indent):
     _log_debug("wrote track footer")
 
 
-def write_coords(kmlf, data, indent):
-    """Write one line of coordinate data in a LinsString object.
+def write_coord(kmlf, data):
+    """Write one coordinate value.
     """
     coord_data = (
         data[F_GPS_LONG],
         data[F_GPS_LAT],
         data[F_GPS_ALT]
     )
-    kmlf.write(indent.indstr + "%s,%s,%s\n" % coord_data)
+    kmlf.write("%s,%s,%s" % coord_data)
+
+
+def write_coords(kmlf, data, indent):
+    """Write one line of coordinate data.
+    """
+    kmlf.write(indent.indstr)
+
+    if not hasattr(data, "index"):
+        data = [data]
+
+    first = True
+    for d in data:
+        if not first:
+            kmlf.write(" ")
+        write_coord(kmlf, d)
+        first = False
+
+    kmlf.write("\n")
 
 
 def make_field_map(header, name_map):
