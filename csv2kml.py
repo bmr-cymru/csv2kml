@@ -65,6 +65,9 @@ __href = 'href'
 __color = 'color'
 __width = 'width'
 __tessellate = 'tessellate'
+__poly = 'Polygon'
+__outerbis = 'outerBoundaryIs'
+__linearring = 'LinearRing'
 __polystyle = "PolyStyle"
 
 # Altitude mode
@@ -323,9 +326,13 @@ def write_kml_footer(kmlf, indent):
     _log_debug("wrote KML footers")
 
 
+PM_POINT = None
+PM_LINE = "line"
+PM_CONE = "cone"
+
 def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
                     icon_marker=None, heading=None, name=None, desc=None,
-                    line=None):
+                    shape=PM_POINT):
     """Write a placemark with optional style.
     """
     if style and icon_marker:
@@ -355,7 +362,7 @@ def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
         write_icon_style(kmlf, None, icon_marker, indent, heading=heading)
 
     # Point mode is default
-    if not line:
+    if not shape:
         write_tag(kmlf, __point, indent)
         write_tag(kmlf, __coord, indent, value=coords)
         write_tag(kmlf, __altitude, indent, value=altitude)
@@ -363,8 +370,9 @@ def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
 
         # Close point tag
         close_tag(kmlf, __point, indent)
-    # Line mark
-    else:
+
+    elif shape == PM_LINE:
+        # Line mark
         write_tag(kmlf, __linestr, indent)
         write_tag(kmlf, __extrude, indent, value="0")
         write_tag(kmlf, __tessellate, indent, value="0")
@@ -381,6 +389,35 @@ def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
         write_coords(kmlf, end_data, indent)
         close_tag(kmlf, __coord, indent)
         close_tag(kmlf, __linestr, indent)
+
+    elif shape == PM_CONE:
+        # Cone mark
+        write_tag(kmlf, __poly, indent)
+        write_tag(kmlf, __tessellate, indent, value="1")
+        write_tag(kmlf, __outerbis, indent)
+        write_tag(kmlf, __linearring, indent)
+        write_tag(kmlf, __coord, indent)
+
+        poly_data = [
+            {F_GPS_LONG: data[F_BASE_LONG],
+             F_GPS_LAT: data[F_BASE_LAT],
+             F_GPS_ALT: "0"},
+            {F_GPS_LONG: data[F_POLY_LONG_1],
+             F_GPS_LAT: data[F_POLY_LAT_1],
+             F_GPS_ALT: "0"},
+            {F_GPS_LONG: data[F_POLY_LONG_2],
+             F_GPS_LAT: data[F_POLY_LAT_2],
+             F_GPS_ALT: "0"},
+            {F_GPS_LONG: data[F_BASE_LONG],
+             F_GPS_LAT: data[F_BASE_LAT],
+             F_GPS_ALT: "0"}
+        ]
+
+        write_coords(kmlf, poly_data, indent)
+        close_tag(kmlf, __coord, indent)
+        close_tag(kmlf, __linearring, indent)
+        close_tag(kmlf, __outerbis, indent)
+        close_tag(kmlf, __poly, indent)
 
     close_tag(kmlf, __place, indent)
     _log_debug("wrote placemark (name='%s')" % name)
