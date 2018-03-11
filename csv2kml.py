@@ -84,12 +84,18 @@ F_TRAVEL_DIST = "F_TRAVEL_DIST"
 F_BASE_LONG = "F_BASE_LONG"
 F_BASE_LAT = "F_BASE_LAT"
 F_BASE_ALT = "F_BASE_ALT"
+F_POLY_LONG_1 = "F_POLY_LONG_1"
+F_POLY_LONG_2 = "F_POLY_LONG_2"
+F_POLY_LAT_1 = "F_POLY_LAT_1"
+F_POLY_LAT_2 = "F_POLY_LAT_2"
 
 __fields = [
     F_TICK, F_FLIGHT_TIME, F_GPS_TS,
     F_GPS_LAT, F_GPS_LONG, F_GPS_ALT,
     F_FLY_STATE, F_YAW, F_TRAVEL_DIST,
-    F_BASE_LONG, F_BASE_LAT, F_BASE_ALT
+    F_BASE_LONG, F_BASE_LAT, F_BASE_ALT,
+    F_POLY_LONG_1, F_POLY_LAT_1,
+    F_POLY_LONG_2, F_POLY_LAT_2,
 ]
 
 #: Map csv2kml field names to DJI column headers
@@ -105,7 +111,11 @@ __dji_header_map = {
     F_TRAVEL_DIST: "distanceTravelled",
     F_BASE_LONG: None,
     F_BASE_LAT: None,
-    F_BASE_ALT: None
+    F_BASE_ALT: None,
+    F_POLY_LONG_1: None,
+    F_POLY_LAT_1: None,
+    F_POLY_LONG_2: None,
+    F_POLY_LAT_2: None
 }
 __dji_key_field = F_TICK
 
@@ -121,8 +131,11 @@ __man_header_map = {
     F_TRAVEL_DIST: "Distance",
     F_BASE_LONG: "Base_Lon",
     F_BASE_LAT: "Base_Lat",
-    F_BASE_ALT: "Base_Alt"
-
+    F_BASE_ALT: "Base_Alt",
+    F_POLY_LONG_1: "Poly_Long_1",
+    F_POLY_LAT_1: "Poly_Lat_1",
+    F_POLY_LONG_2: "Poly_Long_2",
+    F_POLY_LAT_2: "Poly_Lat_2"
 }
 __man_key_field = F_GPS_TS
 
