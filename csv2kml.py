@@ -183,6 +183,7 @@ __colors = {
     'yellow': 'ff00ffff',
     'purple': 'ffff00ff',
     'lightblue': 'fff0aa14'
+    'orange': 'ff00aaff'
 }
 
 icon_marker_0_Red = ("http://manager.hampshire4x4response.net/"
