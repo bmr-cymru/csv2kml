@@ -164,6 +164,9 @@ MODE_TRACK = "track"
 MODE_PLACE = "placemark"
 #: Line mode: create line placemarks from each point to a base point.
 MODE_LINE = "line"
+#: Cone mode: create triangular placemarks from each point to a base
+#: point.
+MODE_CONE = "cone"
 
 #: Absolute altitude mode: values relative to sea level.
 ALT_ABSOLUTE = __alt_absolute
@@ -804,19 +807,33 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         desc = desc_fmt % desc_data
         if mode == MODE_PLACE:
             # Placemark mode: one mark per row
-            write_placemark(kmlf, data, " #iconPathMark", indent, altitude=altitude,
-                            desc=desc)
+            write_placemark(kmlf, data, " #iconPathMark", indent, desc=desc,
+                            altitude=altitude, shape=PM_POINT)
         elif mode == MODE_LINE:
             # Line mode
             line_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
-                        "Base Location: %s / %s\nDistance: %s\nDescription: %s")
+                        "Base Location: %s / %s\nDistance: %s\n"
+                        "Description: %s")
             desc_data = (data[F_TICK], data[F_GPS_TS],
                          data[F_GPS_LONG], data[F_GPS_LAT],
                          data[F_BASE_LONG], data[F_BASE_LAT],
                          data[F_TRAVEL_DIST], data[F_FLY_STATE])
             desc = line_fmt % desc_data
-            write_placemark(kmlf, data, " #lineStyle1", indent, altitude=altitude,
-                            desc=desc, line=True)
+            write_placemark(kmlf, data, " #lineStyle1", indent, desc=desc,
+                            altitude=altitude, shape=PM_LINE)
+        elif mode == MODE_CONE:
+            # Cone mode
+            cone_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
+                        "Base Location: %s / %s\nDistance: %s\n
+                        Description: %s")
+            desc_data = (data[F_TICK], data[F_GPS_TS],
+                         data[F_GPS_LONG], data[F_GPS_LAT],
+                         data[F_BASE_LONG], data[F_BASE_LAT],
+                         data[F_TRAVEL_DIST], data[F_FLY_STATE])
+            desc = cone_fmt % desc_data
+            write_placemark(kmlf, data, " #polyStyle1", indent, desc=desc,
+                            altitude=altitude, shape=PM_CONE)
+
         else:
             # Track mode: write coordinate data inside track tags.
             write_coords(kmlf, data, indent)
@@ -974,8 +991,10 @@ def csv2kml(args):
         mode = MODE_PLACE
     elif args.line:
         mode = MODE_LINE
+    elif args.cone:
+        mode = MODE_CONE
     else:
-        mode =MODE_TRACK
+        mode = MODE_TRACK
 
     alt = ALT_ABSOLUTE if args.absolute else ALT_REL_GROUND
 
@@ -1024,8 +1043,11 @@ def main(argv):
                         help="Use absolute altitude mode", default=None)
     parser.add_argument("-c", "--color", type=str, default="yellow",
                         help="Set track color. Available options: red, blue, "
-                             "lightblue, yellow, green, purple or hex color codes. "
+                             "lightblue, yellow, green, purple, "
+                             "orange or hex color codes. "
                              "(e.g.: red = ff0000ff)")
+    parser.add_argument("-C", "--cone", action="store_true",
+                        help="Output cone polygon instead of track")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Enable Python exception debug output")
     parser.add_argument("-f", "--field-map", type=str, default=None,
