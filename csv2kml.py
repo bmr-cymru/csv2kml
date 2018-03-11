@@ -157,6 +157,8 @@ ALT_REL_GROUND = __alt_rel_ground
 __colors = {
     'red': 'ff0000ff',
     'green': 'ff00ff00',
+    'trans_grn_1': 'a6ffff20',
+    'trans_grn_2': '59ffff20',
     'blue': 'ffff0000',
     'yellow': 'ff00ffff',
     'purple': 'ffff00ff',
