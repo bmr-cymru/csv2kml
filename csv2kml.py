@@ -540,12 +540,12 @@ def make_field_map(header, name_map):
             as [tag] descriptions, '(1)' suffix and redundant ':'.
         """
         name = name.split('[')[0]
-        name = name.rstrip('(1)')
+        if name.endswith('(1)'):
+            name = name.rstrip('(1)')
         name = name.rstrip(':')
         return name
 
     headers = [canonicalise_header(h) for h in headers]
-
     for name in names:
         if name_map[name] in headers:
             idx = headers.index(name_map[name])
