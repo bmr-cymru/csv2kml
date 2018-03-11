@@ -729,8 +729,9 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         # Skip row if coordinate data is null or zero
         coords = [data[F_GPS_LONG], data[F_GPS_LAT], data[F_GPS_ALT]]
         if not any(coords) or all([d == "0.0" for d in coords]):
-            no_coord_skip += 1
-            continue
+            if F_BASE_LONG not in data or not data[F_BASE_LONG]:
+                no_coord_skip += 1
+                continue
 
         csv_data.append(data)
 
