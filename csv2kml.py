@@ -266,6 +266,7 @@ def write_tag(kmlf, tag, indent, value=None):
             tag_indent = indent.indstr
             indent.indent()
             val_indent = indent.indstr
+            indent.undent()
 
         for val_line in value.splitlines():
             kmlf.write(val_indent + val_line + value_end)
