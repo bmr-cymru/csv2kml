@@ -492,7 +492,7 @@ def write_style_headers(kmlf, width, color, indent):
     icon_end = (href_end, None, None)
     icon_mark = (href_mark, None, None)
 
-    write_style(kmlf, "lineStyle1", indent, line_color=__yellow, line_width="4")
+    write_style(kmlf, "lineStyle1", indent, line_color=color, line_width=width)
     write_style(kmlf, "iconPathStart", indent, icon_style=icon_start)
     write_style(kmlf, "iconPathEnd", indent, icon_style=icon_end)
     write_style(kmlf, "iconPathMark", indent, icon_style=icon_mark)
