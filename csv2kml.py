@@ -182,7 +182,7 @@ __colors = {
     'blue': 'ffff0000',
     'yellow': 'ff00ffff',
     'purple': 'ffff00ff',
-    'lightblue': 'fff0aa14'
+    'lightblue': 'fff0aa14',
     'orange': 'ff00aaff'
 }
 
@@ -825,8 +825,8 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         elif mode == MODE_CONE:
             # Cone mode
             cone_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
-                        "Base Location: %s / %s\nDistance: %s\n
-                        Description: %s")
+                        "Base Location: %s / %s\nDistance: %s\n"
+                        "Description: %s")
             desc_data = (data[F_TICK], data[F_GPS_TS],
                          data[F_GPS_LONG], data[F_GPS_LAT],
                          data[F_BASE_LONG], data[F_BASE_LAT],
