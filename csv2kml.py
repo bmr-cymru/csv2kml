@@ -363,7 +363,7 @@ def write_placemark(kmlf, data, style, indent, altitude=ALT_REL_GROUND,
 
     # Write point, coordinates, altitude mode and extrude mode tags.
     else:
-        write_icon_style(kmlf, None, icon_marker, indent, heading=heading)
+        write_icon_style(kmlf, icon_marker, indent, heading=heading)
 
     # Point mode is default
     if not shape:
