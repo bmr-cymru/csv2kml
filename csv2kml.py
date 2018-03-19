@@ -554,9 +554,9 @@ def write_track_header(kmlf, csv_data, indent,
     start_data = (csv_data[0][F_TICK], csv_data[0][F_GPS_TS],
                    csv_data[0][F_GPS_LONG], csv_data[0][F_GPS_LAT],
                    csv_data[0][F_TRAVEL_DIST], csv_data[0][F_FLY_STATE])
-    end_data = (csv_data[1][F_TICK], csv_data[1][F_GPS_TS],
-                   csv_data[1][F_GPS_LONG], csv_data[1][F_GPS_LAT],
-                   csv_data[1][F_TRAVEL_DIST], csv_data[1][F_FLY_STATE])
+    end_data = (csv_data[-1][F_TICK], csv_data[-1][F_GPS_TS],
+                   csv_data[-1][F_GPS_LONG], csv_data[-1][F_GPS_LAT],
+                   csv_data[-1][F_TRAVEL_DIST], csv_data[-1][F_FLY_STATE])
 
     # Write start placemark
     write_placemark(kmlf, csv_data[0], " #iconPathStart", indent,
