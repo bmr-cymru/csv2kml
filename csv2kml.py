@@ -547,7 +547,7 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
     close_tag(kmlf, __folder, indent)
 
 
-def write_track_header(kmlf, csv_data, indent,
+def write_track_header(kmlf, csv_data, indent, track=None,
                        altitude=ALT_REL_GROUND, name=None):
     """Write a track header with a pair of start/end placemarks.
     """
@@ -577,11 +577,13 @@ def write_track_header(kmlf, csv_data, indent,
     # Track folder
     _log_debug("starting track data folder")
 
+    track_desc = "Flight Path (track %s)" % track if track else "Flight Path"
+
     # Write track tags
     write_tag(kmlf, __folder, indent)
     write_tag(kmlf, __place, indent)
     write_tag(kmlf, __name, indent, value=name if name else 'Flight Trace')
-    write_tag(kmlf, __desc, indent, value='Flight Path')
+    write_tag(kmlf, __desc, indent, value=track_desc)
     write_tag(kmlf, __styleurl, indent, value='#lineStyle1')
     write_tag(kmlf, __linestr, indent)
     write_tag(kmlf, __extrude, indent, value="0")
@@ -701,7 +703,7 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         placemark entries for the flight.
     """
     fields = None
-    csv_data = []
+    csv_data = {}
     track = mode == MODE_TRACK
 
     _log_info("Processing CSV data from %s" % csvf.name)
@@ -718,6 +720,9 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     last_ts = 0
 
     header_read = False
+
+    cur_track = -1
+
     # Acquire data points
     for line in csvf:
         # Ignore blank lines, comments etc. before the header row.
@@ -779,7 +784,12 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
                 no_coord_skip += 1
                 continue
 
-        csv_data.append(data)
+        if F_TRACK_NO in data:
+            if cur_track == -1 or cur_track != data[F_TRACK_NO]:
+                cur_track = data[F_TRACK_NO]
+                csv_data[cur_track] = []
+
+        csv_data[cur_track].append(data)
 
     if pre_head_skip:
         _log_debug("skipped %d rows before header" % pre_head_skip)
@@ -791,8 +801,10 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
         _log_debug("skipped %d rows with null coordinates" % no_coord_skip)
 
     if len(csv_data):
-        _log_info("built CSV data table with %d rows and %d keys" %
-                  (len(csv_data), len(csv_data[0].keys())))
+        rows = [len(csv_data[t]) for t in csv_data.keys()]
+        _log_info("built CSV data table with %d tracks, %d rows and %d keys" %
+                  (len(csv_data.keys()), sum(rows),
+                  len(csv_data[cur_track][0].keys())))
     else:
         raise Exception("No non-skipped data rows found")
 
@@ -802,56 +814,66 @@ def process_csv(csvf, kmlf, mode=MODE_TRACK, altitude=ALT_REL_GROUND,
     if state_marks:
         write_state_placemarks(kmlf, csv_data, indent, altitude=altitude)
 
-    # Write track headers
-    if track:
-        write_track_header(kmlf, csv_data, indent, altitude=altitude)
+    wrote_track = False
+    last_track = -2
 
-    for data in csv_data:
-        desc_data = (data[F_TICK], data[F_GPS_TS],
-                     data[F_GPS_LONG], data[F_GPS_LAT],
-                     data[F_TRAVEL_DIST], data[F_FLY_STATE])
-        desc = desc_fmt % desc_data
-        if mode == MODE_PLACE:
-            # Placemark mode: one mark per row
-            write_placemark(kmlf, data, " #iconPathMark", indent, desc=desc,
-                            altitude=altitude, shape=PM_POINT)
-        elif mode == MODE_LINE:
-            # Line mode
-            line_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
-                        "Base Location: %s / %s\nDistance: %s\n"
-                        "Description: %s")
+    for cur_track in csv_data.keys():
+        # Write track headers
+        if track and cur_track != last_track:
+            if wrote_track:
+                # Close track headers
+                write_track_footer(kmlf, indent)
+            write_track_header(kmlf, csv_data[cur_track], indent,
+                               track=cur_track, altitude=altitude)
+            wrote_track = True
+            last_track = cur_track
+
+        for data in csv_data[cur_track]:
             desc_data = (data[F_TICK], data[F_GPS_TS],
                          data[F_GPS_LONG], data[F_GPS_LAT],
-                         data[F_BASE_LONG], data[F_BASE_LAT],
                          data[F_TRAVEL_DIST], data[F_FLY_STATE])
-            desc = line_fmt % desc_data
-            write_placemark(kmlf, data, " #lineStyle1", indent, desc=desc,
-                            altitude=altitude, shape=PM_LINE)
-        elif mode == MODE_CONE:
-            # Cone mode
-            cone_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
-                        "Base Location: %s / %s\nDistance: %s\n"
-                        "Description: %s")
-            desc_data = (data[F_TICK], data[F_GPS_TS],
-                         data[F_GPS_LONG], data[F_GPS_LAT],
-                         data[F_BASE_LONG], data[F_BASE_LAT],
-                         data[F_TRAVEL_DIST], data[F_FLY_STATE])
-            desc = cone_fmt % desc_data
-            write_placemark(kmlf, data, " #polyStyle1", indent, desc=desc,
-                            altitude=altitude, shape=PM_CONE)
+            desc = desc_fmt % desc_data
+            if mode == MODE_PLACE:
+                # Placemark mode: one mark per row
+                write_placemark(kmlf, data, " #iconPathMark", indent, desc=desc,
+                                altitude=altitude, shape=PM_POINT)
+            elif mode == MODE_LINE:
+                # Line mode
+                line_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
+                            "Base Location: %s / %s\nDistance: %s\n"
+                            "Description: %s")
+                desc_data = (data[F_TICK], data[F_GPS_TS],
+                             data[F_GPS_LONG], data[F_GPS_LAT],
+                             data[F_BASE_LONG], data[F_BASE_LAT],
+                             data[F_TRAVEL_DIST], data[F_FLY_STATE])
+                desc = line_fmt % desc_data
+                write_placemark(kmlf, data, " #lineStyle1", indent, desc=desc,
+                                altitude=altitude, shape=PM_LINE)
+            elif mode == MODE_CONE:
+                # Cone mode
+                cone_fmt = ("Tick#: %s\nDate/Time: %s\nPosition: %s / %s\n"
+                            "Base Location: %s / %s\nDistance: %s\n"
+                            "Description: %s")
+                desc_data = (data[F_TICK], data[F_GPS_TS],
+                             data[F_GPS_LONG], data[F_GPS_LAT],
+                             data[F_BASE_LONG], data[F_BASE_LAT],
+                             data[F_TRAVEL_DIST], data[F_FLY_STATE])
+                desc = cone_fmt % desc_data
+                write_placemark(kmlf, data, " #polyStyle1", indent, desc=desc,
+                                altitude=altitude, shape=PM_CONE)
 
-        else:
-            # Track mode: write coordinate data inside track tags.
-            write_coords(kmlf, data, indent)
+            else:
+                # Track mode: write coordinate data inside track tags.
+                write_coords(kmlf, data, indent)
+
+    if track and wrote_track:
+        # Close track headers
+        write_track_footer(kmlf, indent)
 
     if not track:
         _log_info("wrote placemark data")
     else:
         _log_info("wrote track coordinate data")
-
-    if track:
-        # Close track headers
-        write_track_footer(kmlf, indent)
 
     write_kml_footer(kmlf, indent)
     sync_kml_file(kmlf)
