@@ -525,24 +525,26 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
     fly_state = None
     _log_debug("starting state placemarks folder")
     write_tag(kmlf, __folder, indent)
-    for data in csv_data:
-        new_fly_state = data[F_FLY_STATE]
-        # Convert alias to canonical name
-        if new_fly_state in __fs_aliases:
-            new_fly_state = __fs_aliases[new_fly_state]
-        if fly_state:
-            if new_fly_state != fly_state:
-                _log_info("fly state changed from '%s' to '%s'" %
-                          (fly_state, new_fly_state))
-                name = "%s:%s" % (fly_state, new_fly_state)
-                desc_data = (data[F_TICK], data[F_GPS_TS],
-                             data[F_GPS_LONG], data[F_GPS_LAT],
-                             data[F_TRAVEL_DIST], data[F_FLY_STATE])
-                write_placemark(kmlf, data, None, indent, altitude=altitude,
-                                icon_marker=icon_marker, name=name,
-                                heading=data[F_YAW], desc=desc_fmt % desc_data)
-        # Update current fly state
-        fly_state = new_fly_state
+    for track in csv_data.keys():
+        for data in csv_data[track]:
+            new_fly_state = data[F_FLY_STATE]
+            # Convert alias to canonical name
+            if new_fly_state in __fs_aliases:
+                new_fly_state = __fs_aliases[new_fly_state]
+            if fly_state:
+                if new_fly_state != fly_state:
+                    _log_info("fly state changed from '%s' to '%s'" %
+                              (fly_state, new_fly_state))
+                    name = "%s:%s" % (fly_state, new_fly_state)
+                    desc_data = (data[F_TICK], data[F_GPS_TS],
+                                 data[F_GPS_LONG], data[F_GPS_LAT],
+                                 data[F_TRAVEL_DIST], data[F_FLY_STATE])
+                    write_placemark(kmlf, data, None, indent,
+                                    altitude=altitude, icon_marker=icon_marker,
+                                    name=name, heading=data[F_YAW],
+                                    desc=desc_fmt % desc_data)
+            # Update current fly state
+            fly_state = new_fly_state
     _log_debug("ending state placemarks folder")
     close_tag(kmlf, __folder, indent)
 
