@@ -187,7 +187,7 @@ __colors = {
     'purple': 'ffff00ff',
     'lightblue': 'fff0aa14',
     'orange': 'ff00aaff',
-    'white': 'ffffffff'
+    'white': 'ffffffff',
     'trans_red': '660000ff',
     'trans_green': '6600ff00',
     'trans_blue': '66ff0000',
@@ -1092,8 +1092,8 @@ def main(argv):
                         help="Set track color. Available options: red, blue, "
                              "lightblue, yellow, green, purple, white, "
                              "orange or hex color codes. "
-                             "(e.g.: red = ff0000ff)".
-                             "For a 40% transparnecy add trans_ to any colour.)
+                             "(e.g.: red = ff0000ff) "
+                             "For a 40% transparnecy add trans_ to any colour.")
     parser.add_argument("-C", "--cone", action="store_true",
                         help="Output cone polygon instead of track")
     parser.add_argument("-d", "--debug", action="store_true",
