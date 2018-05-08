@@ -188,6 +188,14 @@ __colors = {
     'lightblue': 'fff0aa14',
     'orange': 'ff00aaff',
     'white': 'ffffffff'
+    'trans_red': '660000ff',
+    'trans_green': '6600ff00',
+    'trans_blue': '66ff0000',
+    'trans_yellow': '6600ffff',
+    'trans_purple': '66ff00ff',
+    'trans_lightblue': '66f0aa14',
+    'trans_orange': '6600aaff',
+    'trans_white': '66ffffff'
 }
 
 icon_marker_0_Red = ("http://manager.hampshire4x4response.net/"
@@ -525,6 +533,9 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
     fly_state = None
     _log_debug("starting state placemarks folder")
     write_tag(kmlf, __folder, indent)
+    """ Write the folder name
+    """
+    write_tag(kmlf, __name, indent, value=name if name else 'Place Marker')
     for track in csv_data.keys():
         for data in csv_data[track]:
             new_fly_state = data[F_FLY_STATE]
@@ -556,6 +567,9 @@ def write_track_header(kmlf, csv_data, indent, track=None,
     # Start/end folder
     _log_debug("starting track placemarks folder")
     write_tag(kmlf, __folder, indent)
+    """ Write the folder name.
+    """
+    write_tag(kmlf, __name, indent, value=name if name else 'Start/End Marker')
 
     start_data = (csv_data[0][F_TICK], csv_data[0][F_GPS_TS],
                    csv_data[0][F_GPS_LONG], csv_data[0][F_GPS_LAT],
@@ -583,6 +597,9 @@ def write_track_header(kmlf, csv_data, indent, track=None,
 
     # Write track tags
     write_tag(kmlf, __folder, indent)
+    """ Write the folder name.
+    """
+    write_tag(kmlf, __name, indent, value=name if name else track_desc)
     write_tag(kmlf, __place, indent)
     write_tag(kmlf, __name, indent, value=name if name else 'Flight Trace')
     write_tag(kmlf, __desc, indent, value=track_desc)
@@ -1075,7 +1092,8 @@ def main(argv):
                         help="Set track color. Available options: red, blue, "
                              "lightblue, yellow, green, purple, white, "
                              "orange or hex color codes. "
-                             "(e.g.: red = ff0000ff)")
+                             "(e.g.: red = ff0000ff)".
+                             "For a 40% transparnecy add trans_ to any colour.)
     parser.add_argument("-C", "--cone", action="store_true",
                         help="Output cone polygon instead of track")
     parser.add_argument("-d", "--debug", action="store_true",
