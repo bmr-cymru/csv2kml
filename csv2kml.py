@@ -535,7 +535,7 @@ def write_state_placemarks(kmlf, csv_data, indent, altitude=ALT_REL_GROUND):
     write_tag(kmlf, __folder, indent)
     """ Write the folder name
     """
-    write_tag(kmlf, __name, indent, value=name if name else 'Place Marker')
+    write_tag(kmlf, __name, indent, value='Place Marker')
     for track in csv_data.keys():
         for data in csv_data[track]:
             new_fly_state = data[F_FLY_STATE]
