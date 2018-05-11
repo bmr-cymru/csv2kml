@@ -193,7 +193,7 @@ __colors = {
     'trans_blue': '66ff0000',
     'trans_yellow': '6600ffff',
     'trans_purple': '66ff00ff',
-    'trans_lightblue': '99f0aa14',
+    'trans_lightblue': '88f0aa14',
     'trans_orange': '6600aaff',
     'trans_white': '66ffffff'
 }
