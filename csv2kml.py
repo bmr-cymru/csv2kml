@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (C) 2018 Bryn M. Reeves <bmr@errorists.org>
 # Co-Progamming and Design: Axel Seedig <axel@endeavoursky.co.uk>
@@ -1093,7 +1093,7 @@ def main(argv):
                              "lightblue, yellow, green, purple, white, "
                              "orange or hex color codes. "
                              "(e.g.: red = ff0000ff) "
-                             "For a 40% transparnecy add trans_ to any colour.")
+                             "For a 40%% transparnecy add trans_ to any colour.")
     parser.add_argument("-C", "--cone", action="store_true",
                         help="Output cone polygon instead of track")
     parser.add_argument("-d", "--debug", action="store_true",
